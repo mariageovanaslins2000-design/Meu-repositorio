@@ -3,6 +3,7 @@ import {
   LayoutDashboard, 
   Calendar, 
   Users, 
+  Briefcase,
   DollarSign, 
   Settings,
   Scissors,
@@ -17,6 +18,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Calendar, label: "Agendamentos", path: "/admin/appointments" },
   { icon: Users, label: "Barbeiros", path: "/admin/barbers" },
+  { icon: Briefcase, label: "Serviços", path: "/admin/services" },
   { icon: DollarSign, label: "Financeiro", path: "/admin/financial" },
   { icon: Settings, label: "Configurações", path: "/admin/settings" },
 ];
