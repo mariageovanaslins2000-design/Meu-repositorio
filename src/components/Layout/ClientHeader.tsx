@@ -2,6 +2,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Settings2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +18,35 @@ import { ClientMobileMenu } from "./ClientMobileMenu";
 export function ClientHeader() {
   const { signOut, user, hasRole } = useAuth();
   const location = useLocation();
+  const [barbershop, setBarbershop] = useState<{ name: string; logo_url: string } | null>(null);
+
+  useEffect(() => {
+    const loadBarbershop = async () => {
+      if (!user) return;
+
+      // Get the barbershop from the first appointment
+      const { data: appointment } = await supabase
+        .from("appointments")
+        .select("barbershop_id")
+        .eq("client_id", user.id)
+        .limit(1)
+        .single();
+
+      if (appointment) {
+        const { data: barbershopData } = await supabase
+          .from("barbershops")
+          .select("name, logo_url")
+          .eq("id", appointment.barbershop_id)
+          .single();
+
+        if (barbershopData) {
+          setBarbershop(barbershopData);
+        }
+      }
+    };
+
+    loadBarbershop();
+  }, [user]);
 
   const navItems = [
     { path: "/client", label: "Início", icon: Home },
@@ -34,10 +65,14 @@ export function ClientHeader() {
           <ClientMobileMenu />
           
           <Link to="/client" className="flex items-center gap-2">
-            <div className="p-2 bg-primary rounded-full">
-              <Scissors className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg md:text-xl font-bold">BarberShop</span>
+            {barbershop?.logo_url ? (
+              <img src={barbershop.logo_url} alt={barbershop.name} className="h-10 w-10 object-contain rounded-lg" />
+            ) : (
+              <div className="p-2 bg-primary rounded-full">
+                <Scissors className="h-5 w-5 text-primary-foreground" />
+              </div>
+            )}
+            <span className="text-lg md:text-xl font-bold">{barbershop?.name || "BarberShop"}</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">

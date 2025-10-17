@@ -1,8 +1,10 @@
-import { Bell, Search, Settings } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,16 +14,47 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, LogOut, Store } from "lucide-react";
+import { User, LogOut, Store, Scissors } from "lucide-react";
 
 export const Header = () => {
   const { user, hasRole, signOut } = useAuth();
+  const [barbershop, setBarbershop] = useState<{ name: string; logo_url: string } | null>(null);
+
+  useEffect(() => {
+    const loadBarbershop = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("barbershops")
+        .select("name, logo_url")
+        .eq("owner_id", user.id)
+        .single();
+
+      if (data) {
+        setBarbershop(data);
+      }
+    };
+
+    loadBarbershop();
+  }, [user]);
   
   return (
     <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
       <div className="flex items-center justify-between px-4 lg:px-8 py-4">
+        {/* Logo and Name */}
+        <div className="flex items-center gap-3">
+          {barbershop?.logo_url ? (
+            <img src={barbershop.logo_url} alt={barbershop.name} className="h-10 w-10 object-contain rounded-lg" />
+          ) : (
+            <div className="p-2 bg-primary rounded-full">
+              <Scissors className="h-5 w-5 text-primary-foreground" />
+            </div>
+          )}
+          <span className="hidden lg:block text-lg font-bold">{barbershop?.name || "BarberShop Admin"}</span>
+        </div>
+
         {/* Search */}
-        <div className="hidden lg:flex flex-1 max-w-md">
+        <div className="hidden lg:flex flex-1 max-w-md mx-4">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input

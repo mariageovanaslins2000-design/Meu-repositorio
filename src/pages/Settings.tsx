@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 const Settings = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [barbershop, setBarbershop] = useState({
     name: "",
     phone: "",
@@ -20,6 +22,7 @@ const Settings = () => {
     primary_color: "#D4AF37",
     secondary_color: "#1A1A1A",
   });
+  const [barbershopId, setBarbershopId] = useState<string | null>(null);
 
   useEffect(() => {
     loadBarbershop();
@@ -38,6 +41,7 @@ const Settings = () => {
       if (error) throw error;
 
       if (data) {
+        setBarbershopId(data.id);
         setBarbershop({
           name: data.name || "",
           phone: data.phone || "",
@@ -49,6 +53,49 @@ const Settings = () => {
       }
     } catch (error) {
       console.error("Erro ao carregar barbearia:", error);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !barbershopId) return;
+
+    try {
+      setUploading(true);
+
+      // Delete old logo if exists
+      if (barbershop.logo_url) {
+        const oldPath = barbershop.logo_url.split("/").pop();
+        if (oldPath) {
+          await supabase.storage.from("logos").remove([`${barbershopId}/${oldPath}`]);
+        }
+      }
+
+      // Upload new logo
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${barbershopId}/logo-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("logos")
+        .upload(fileName, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from("logos")
+        .getPublicUrl(fileName);
+
+      setBarbershop({ ...barbershop, logo_url: publicUrl });
+      toast.success("Logo enviada com sucesso!");
+    } catch (error) {
+      console.error("Error uploading logo:", error);
+      toast.error("Erro ao enviar logo");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -143,14 +190,37 @@ const Settings = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Logo URL</Label>
-              <Input
-                value={barbershop.logo_url}
-                onChange={(e) => setBarbershop({ ...barbershop, logo_url: e.target.value })}
-                placeholder="https://exemplo.com/logo.png"
-              />
+              <Label>Logo da Barbearia</Label>
+              <div className="mt-2 space-y-3">
+                {barbershop.logo_url && (
+                  <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
+                    <img
+                      src={barbershop.logo_url}
+                      alt="Logo"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="w-full"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {uploading ? "Enviando..." : "Escolher Arquivo"}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Cole o link da sua logo (hospedado em Imgur, Cloudinary, etc)
+                Formatos aceitos: JPG, PNG, SVG (máx. 5MB)
               </p>
             </div>
             <div className="space-y-3">

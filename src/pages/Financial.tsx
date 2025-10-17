@@ -42,6 +42,7 @@ const Financial = () => {
   const [totalCommissions, setTotalCommissions] = useState(0);
   const [totalProfit, setTotalProfit] = useState(0);
   const [totalServices, setTotalServices] = useState(0);
+  const [pendingRevenue, setPendingRevenue] = useState(0);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -84,6 +85,15 @@ const Financial = () => {
         `)
         .eq("barbershop_id", barbershop.id)
         .eq("status", "completed");
+
+      // Get pending appointments for pending revenue calculation
+      const { data: pendingAppointments } = await supabase
+        .from("appointments")
+        .select(`
+          service_id
+        `)
+        .eq("barbershop_id", barbershop.id)
+        .in("status", ["pending", "confirmed"]);
 
       // Fetch related data if there are appointments
       let enrichedAppointments: any[] = [];
@@ -159,6 +169,22 @@ const Financial = () => {
 
       setTransactions(transactionsData.slice(0, 10)); // Show last 10
 
+      // Calculate pending revenue
+      if (pendingAppointments && pendingAppointments.length > 0) {
+        const serviceIds = [...new Set(pendingAppointments.map(a => a.service_id))];
+        const { data: servicesData } = await supabase
+          .from("services")
+          .select("id, price")
+          .in("id", serviceIds);
+
+        const pendingTotal = pendingAppointments.reduce((sum, apt) => {
+          const service = servicesData?.find(s => s.id === apt.service_id);
+          return sum + (service?.price || 0);
+        }, 0);
+
+        setPendingRevenue(pendingTotal);
+      }
+
     } catch (error) {
       console.error("Error loading financial data:", error);
       toast({
@@ -172,10 +198,30 @@ const Financial = () => {
   };
 
   const summary = [
-    { label: "Receita Total", value: `R$ ${totalRevenue.toFixed(2)}`, icon: DollarSign },
-    { label: "Comissões", value: `R$ ${totalCommissions.toFixed(2)}`, icon: Wallet },
-    { label: "Lucro Líquido", value: `R$ ${totalProfit.toFixed(2)}`, icon: TrendingUp },
-    { label: "Serviços Realizados", value: totalServices.toString(), icon: Users },
+    { 
+      label: "Receita Concluída", 
+      value: `R$ ${totalRevenue.toFixed(2)}`, 
+      icon: DollarSign,
+      description: "Serviços confirmados"
+    },
+    { 
+      label: "Receita Pendente", 
+      value: `R$ ${pendingRevenue.toFixed(2)}`, 
+      icon: DollarSign,
+      description: "Aguardando confirmação"
+    },
+    { 
+      label: "Comissões", 
+      value: `R$ ${totalCommissions.toFixed(2)}`, 
+      icon: Wallet,
+      description: "Total de comissões"
+    },
+    { 
+      label: "Lucro Líquido", 
+      value: `R$ ${totalProfit.toFixed(2)}`, 
+      icon: TrendingUp,
+      description: "Receita - comissões"
+    },
   ];
 
   if (loading) {
@@ -203,6 +249,7 @@ const Financial = () => {
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">{item.label}</p>
                   <p className="text-2xl font-bold">{item.value}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
                 </div>
                 <div className="w-12 h-12 rounded-lg bg-gradient-gold flex items-center justify-center">
                   <item.icon className="w-6 h-6 text-secondary-foreground" />
