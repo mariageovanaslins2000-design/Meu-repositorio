@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut } from "lucide-react";
+import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Settings2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function ClientHeader() {
-  const { signOut, user } = useAuth();
+  const { signOut, user, hasRole } = useAuth();
   const location = useLocation();
 
   const navItems = [
@@ -72,6 +72,14 @@ export function ClientHeader() {
                 Meu Perfil
               </Link>
             </DropdownMenuItem>
+            {hasRole("owner") && (
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="cursor-pointer">
+                  <Settings2 className="mr-2 h-4 w-4" />
+                  Painel Admin
+                </Link>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={signOut} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               Sair

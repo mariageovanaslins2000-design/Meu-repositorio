@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, role, loading } = useAuth();
+  const { user, hasRole, roles, loading } = useAuth();
 
   if (loading) {
     return (
@@ -21,11 +21,11 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" replace />;
   }
 
-  if (requiredRole && role !== requiredRole) {
-    // Redirect to appropriate dashboard based on role
-    if (role === "owner") {
+  if (requiredRole && !hasRole(requiredRole)) {
+    // Redirect to appropriate dashboard based on available roles
+    if (hasRole("owner")) {
       return <Navigate to="/admin" replace />;
-    } else {
+    } else if (hasRole("client")) {
       return <Navigate to="/client" replace />;
     }
   }

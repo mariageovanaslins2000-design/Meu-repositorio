@@ -9,8 +9,9 @@ type UserRole = "owner" | "client";
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  role: UserRole | null;
+  roles: UserRole[];
   loading: boolean;
+  hasRole: (role: UserRole) => boolean;
   signUp: (email: string, password: string, fullName: string, phone: string, role: UserRole, barbershopName?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -21,9 +22,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [role, setRole] = useState<UserRole | null>(null);
+  const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const hasRole = (role: UserRole) => roles.includes(role);
 
   useEffect(() => {
     // Set up auth state listener
@@ -33,18 +36,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user role
+          // Fetch user roles
           setTimeout(async () => {
-            const { data: roleData } = await supabase
+            const { data: rolesData } = await supabase
               .from("user_roles")
               .select("role")
-              .eq("user_id", session.user.id)
-              .single();
+              .eq("user_id", session.user.id);
             
-            setRole(roleData?.role as UserRole | null);
+            setRoles(rolesData?.map(r => r.role as UserRole) || []);
           }, 0);
         } else {
-          setRole(null);
+          setRoles([]);
         }
       }
     );
@@ -56,13 +58,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         setTimeout(async () => {
-          const { data: roleData } = await supabase
+          const { data: rolesData } = await supabase
             .from("user_roles")
             .select("role")
-            .eq("user_id", session.user.id)
-            .single();
+            .eq("user_id", session.user.id);
           
-          setRole(roleData?.role as UserRole | null);
+          setRoles(rolesData?.map(r => r.role as UserRole) || []);
           setLoading(false);
         }, 0);
       } else {
@@ -126,21 +127,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      // Fetch user role to redirect appropriately
-      const { data: roleData } = await supabase
+      // Fetch user roles to redirect appropriately
+      const { data: rolesData } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", data.user.id)
-        .single();
+        .eq("user_id", data.user.id);
 
-      const userRole = roleData?.role as UserRole;
+      const userRoles = rolesData?.map(r => r.role as UserRole) || [];
 
       toast.success("Login realizado com sucesso!");
 
-      // Redirect based on role
-      if (userRole === "owner") {
+      // Redirect based on roles (priority: owner > client)
+      if (userRoles.includes("owner")) {
         navigate("/admin");
-      } else {
+      } else if (userRoles.includes("client")) {
         navigate("/client");
       }
     } catch (error: any) {
@@ -169,7 +169,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, role, loading, signUp, signIn, signOut }}
+      value={{ user, session, roles, loading, hasRole, signUp, signIn, signOut }}
     >
       {children}
     </AuthContext.Provider>
