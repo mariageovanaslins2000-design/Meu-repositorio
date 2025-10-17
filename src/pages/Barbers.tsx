@@ -3,6 +3,7 @@ import { Mail, Phone, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AddBarberDialog } from "@/components/Barbers/AddBarberDialog";
+import { EditBarberDialog } from "@/components/Barbers/EditBarberDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -76,27 +77,30 @@ const Barbers = () => {
           {barbers.map((barber) => (
             <Card key={barber.id} className="shadow-elegant hover:shadow-xl transition-shadow">
               <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <Avatar className="w-16 h-16">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <Avatar className="w-20 h-20 sm:w-16 sm:h-16 mx-auto sm:mx-0">
                     {barber.photo_url && <AvatarImage src={barber.photo_url} alt={barber.name} />}
                     <AvatarFallback className="bg-gradient-gold text-lg font-bold">
                       {barber.name.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold">{barber.name}</h3>
+                  <div className="flex-1 text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                      <h3 className="text-xl font-bold">{barber.name}</h3>
+                      <EditBarberDialog barber={barber} onBarberUpdated={loadBarbers} />
+                    </div>
                     <p className="text-sm text-muted-foreground mb-4">
                       {barber.specialty || "Barbeiro"}
                     </p>
                     
                     {barber.phone && (
-                      <div className="flex items-center gap-2 text-sm mb-4">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 text-sm mb-4">
                         <Phone className="w-4 h-4 text-muted-foreground" />
                         <span>{barber.phone}</span>
                       </div>
                     )}
 
-                    <div className="flex items-center gap-6 pt-4 border-t">
+                    <div className="flex items-center justify-center sm:justify-start gap-6 pt-4 border-t">
                       <div>
                         <p className="text-sm text-muted-foreground">Comissão</p>
                         <p className="text-2xl font-bold">{barber.commission_percent}%</p>

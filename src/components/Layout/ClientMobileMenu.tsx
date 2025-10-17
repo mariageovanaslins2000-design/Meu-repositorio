@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, Menu, User, LogOut, Settings2 } from "lucide-react";
+import { Scissors, Home, Calendar, Users, Briefcase, Menu, User, LogOut, Settings2, Image } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
@@ -16,6 +16,7 @@ export function ClientMobileMenu() {
     { path: "/client/appointments", label: "Meus Agendamentos", icon: Calendar },
     { path: "/client/barbers", label: "Barbeiros", icon: Users },
     { path: "/client/services", label: "Serviços", icon: Briefcase },
+    { path: "/client/portfolio", label: "Portfólio", icon: Image },
   ];
 
   const isActive = (path: string) => location.pathname === path;

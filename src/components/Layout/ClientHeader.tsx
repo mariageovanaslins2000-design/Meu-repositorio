@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Settings2 } from "lucide-react";
+import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Settings2, Image } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -54,6 +54,7 @@ export function ClientHeader() {
     { path: "/client/appointments", label: "Meus Agendamentos", icon: Calendar },
     { path: "/client/barbers", label: "Barbeiros", icon: Users },
     { path: "/client/services", label: "Serviços", icon: Briefcase },
+    { path: "/client/portfolio", label: "Portfólio", icon: Image },
   ];
 
   const isActive = (path: string) => location.pathname === path;

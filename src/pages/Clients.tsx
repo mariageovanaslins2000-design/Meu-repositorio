@@ -213,11 +213,12 @@ const Clients = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
+            <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{clients.length}</div>
+            <div className="text-2xl font-bold">{clients.filter(c => c.total_appointments > 0).length}</div>
+            <p className="text-xs text-muted-foreground">Com agendamentos confirmados</p>
           </CardContent>
         </Card>
 

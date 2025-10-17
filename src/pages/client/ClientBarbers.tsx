@@ -45,24 +45,33 @@ export default function ClientBarbers() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {barbers.map((barber) => (
-          <Card key={barber.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="text-center">
-              <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center text-4xl font-bold">
-                {barber.photo_url ? (
-                  <img src={barber.photo_url} alt={barber.name} className="w-full h-full rounded-full object-cover" />
-                ) : (
-                  <User className="h-12 w-12 text-muted-foreground" />
-                )}
+          <Card key={barber.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
+            <CardHeader className="text-center pb-2">
+              <div className="relative w-32 h-32 mx-auto mb-4">
+                <div className="absolute inset-0 bg-gradient-gold rounded-full animate-pulse opacity-20"></div>
+                <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-primary/20 shadow-xl">
+                  {barber.photo_url ? (
+                    <img 
+                      src={barber.photo_url} 
+                      alt={barber.name} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-gold flex items-center justify-center">
+                      <User className="h-16 w-16 text-sidebar-primary-foreground" />
+                    </div>
+                  )}
+                </div>
               </div>
-              <CardTitle>{barber.name}</CardTitle>
+              <CardTitle className="text-xl">{barber.name}</CardTitle>
               {barber.specialty && (
-                <CardDescription>{barber.specialty}</CardDescription>
+                <CardDescription className="text-base">{barber.specialty}</CardDescription>
               )}
             </CardHeader>
             {barber.phone && (
-              <CardContent className="text-center">
+              <CardContent className="text-center pt-2">
                 <p className="text-sm text-muted-foreground">{barber.phone}</p>
               </CardContent>
             )}

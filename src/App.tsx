@@ -15,12 +15,14 @@ import Services from "./pages/Services";
 import Clients from "./pages/Clients";
 import Financial from "./pages/Financial";
 import Settings from "./pages/Settings";
+import Portfolio from "./pages/Portfolio";
 import ClientHome from "./pages/client/ClientHome";
 import ClientBooking from "./pages/client/ClientBooking";
 import ClientAppointments from "./pages/client/ClientAppointments";
 import ClientBarbers from "./pages/client/ClientBarbers";
 import ClientServices from "./pages/client/ClientServices";
 import ClientProfile from "./pages/client/ClientProfile";
+import ClientPortfolio from "./pages/client/ClientPortfolio";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +53,7 @@ const App = () => (
               <Route path="services" element={<Services />} />
               <Route path="clients" element={<Clients />} />
               <Route path="financial" element={<Financial />} />
+              <Route path="portfolio" element={<Portfolio />} />
               <Route path="settings" element={<Settings />} />
             </Route>
 
@@ -68,6 +71,7 @@ const App = () => (
               <Route path="appointments" element={<ClientAppointments />} />
               <Route path="barbers" element={<ClientBarbers />} />
               <Route path="services" element={<ClientServices />} />
+              <Route path="portfolio" element={<ClientPortfolio />} />
               <Route path="profile" element={<ClientProfile />} />
             </Route>
 

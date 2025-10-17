@@ -29,6 +29,7 @@ const menuItems = [
   { icon: Briefcase, label: "Serviços", path: "/admin/services" },
   { icon: Users, label: "Clientes", path: "/admin/clients" },
   { icon: DollarSign, label: "Financeiro", path: "/admin/financial" },
+  { icon: Scissors, label: "Portfólio", path: "/admin/portfolio" },
   { icon: Settings, label: "Configurações", path: "/admin/settings" },
 ];
 
@@ -63,7 +64,7 @@ export const MobileSidebar = () => {
             <Scissors className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-sidebar-foreground">BarberPro</h1>
+            <h1 className="text-sm font-bold text-sidebar-foreground">IABarber</h1>
           </div>
         </div>
 
@@ -82,8 +83,8 @@ export const MobileSidebar = () => {
                     <Scissors className="w-5 h-5 text-sidebar-primary-foreground" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold text-sidebar-foreground">BarberPro</h1>
-                    <p className="text-xs text-muted-foreground">Gestão Profissional</p>
+                    <h1 className="text-lg font-bold text-sidebar-foreground">IABarber</h1>
+<p className="text-xs text-muted-foreground">Gestão Inteligente</p>
                   </div>
                 </div>
               </div>
