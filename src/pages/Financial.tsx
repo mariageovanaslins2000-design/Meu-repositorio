@@ -64,7 +64,30 @@ const Financial = () => {
 
       if (!barbershop) return;
 
-      // Get all barbers
+      // Get all financial records
+      const { data: financialRecords } = await supabase
+        .from("financial_records")
+        .select(`
+          id,
+          appointment_id,
+          barber_id,
+          valor_total,
+          comissao_percent,
+          comissao_valor,
+          valor_liquido_barbearia,
+          status,
+          created_at
+        `)
+        .eq("barbershop_id", barbershop.id)
+        .eq("status", "EFETIVADO")
+        .order("created_at", { ascending: false });
+
+      if (!financialRecords || financialRecords.length === 0) {
+        setLoading(false);
+        return;
+      }
+
+      // Get barbers
       const { data: barbers } = await supabase
         .from("barbers")
         .select("id, name, commission_percent")
@@ -73,69 +96,53 @@ const Financial = () => {
 
       if (!barbers) return;
 
-      // Get completed appointments
-      const { data: completedAppointments } = await supabase
+      // Get appointment details for transactions
+      const appointmentIds = financialRecords.map(r => r.appointment_id);
+      const { data: appointments } = await supabase
         .from("appointments")
         .select(`
           id,
           appointment_date,
-          barber_id,
           client_id,
           service_id
         `)
-        .eq("barbershop_id", barbershop.id)
-        .eq("status", "completed");
+        .in("id", appointmentIds);
 
-      // Get pending appointments for pending revenue calculation
-      const { data: pendingAppointments } = await supabase
-        .from("appointments")
-        .select(`
-          service_id
-        `)
-        .eq("barbershop_id", barbershop.id)
-        .in("status", ["pending", "confirmed"]);
+      // Get clients and services for display
+      const clientIds = [...new Set(appointments?.map(a => a.client_id) || [])];
+      const serviceIds = [...new Set(appointments?.map(a => a.service_id) || [])];
 
-      // Fetch related data if there are appointments
-      let enrichedAppointments: any[] = [];
-      if (completedAppointments && completedAppointments.length > 0) {
-        const barberIds = [...new Set(completedAppointments.map(a => a.barber_id))];
-        const clientIds = [...new Set(completedAppointments.map(a => a.client_id))];
-        const serviceIds = [...new Set(completedAppointments.map(a => a.service_id))];
-
-        const [{ data: barbersData }, { data: clientsData }, { data: servicesData }] = await Promise.all([
-          supabase.from("barbers").select("id, name").in("id", barberIds),
-          supabase.from("profiles").select("id, full_name").in("id", clientIds),
-          supabase.from("services").select("id, name, price").in("id", serviceIds),
-        ]);
-
-        enrichedAppointments = completedAppointments.map(apt => ({
-          ...apt,
-          barber: { name: barbersData?.find(b => b.id === apt.barber_id)?.name || "N/A" },
-          client: { full_name: clientsData?.find(c => c.id === apt.client_id)?.full_name || "N/A" },
-          service: servicesData?.find(s => s.id === apt.service_id) || { name: "N/A", price: 0 }
-        }));
-      }
+      const [{ data: profiles }, { data: services }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name").in("id", clientIds),
+        supabase.from("services").select("id, name").in("id", serviceIds),
+      ]);
 
       // Calculate financial data for each barber
       const barberFinancialsData: BarberFinancial[] = barbers.map((barber) => {
-        const barberAppointments = enrichedAppointments.filter(
-          (apt) => apt.barber_id === barber.id
+        const barberRecords = financialRecords.filter(
+          (record) => record.barber_id === barber.id
         );
 
-        const totalRevenue = barberAppointments.reduce(
-          (sum, apt) => sum + Number(apt.service.price),
+        const totalRevenue = barberRecords.reduce(
+          (sum, record) => sum + Number(record.valor_total),
           0
         );
 
-        const commissionPercent = Number(barber.commission_percent) || 0;
-        const totalCommission = (totalRevenue * commissionPercent) / 100;
-        const barbershopProfit = totalRevenue - totalCommission;
+        const totalCommission = barberRecords.reduce(
+          (sum, record) => sum + Number(record.comissao_valor),
+          0
+        );
+
+        const barbershopProfit = barberRecords.reduce(
+          (sum, record) => sum + Number(record.valor_liquido_barbearia),
+          0
+        );
 
         return {
           id: barber.id,
           name: barber.name,
-          commission_percent: commissionPercent,
-          totalServices: barberAppointments.length,
+          commission_percent: Number(barber.commission_percent) || 0,
+          totalServices: barberRecords.length,
           totalRevenue,
           totalCommission,
           barbershopProfit,
@@ -148,37 +155,51 @@ const Financial = () => {
       const revenue = barberFinancialsData.reduce((sum, b) => sum + b.totalRevenue, 0);
       const commissions = barberFinancialsData.reduce((sum, b) => sum + b.totalCommission, 0);
       const profit = barberFinancialsData.reduce((sum, b) => sum + b.barbershopProfit, 0);
-      const services = barberFinancialsData.reduce((sum, b) => sum + b.totalServices, 0);
+      const totalServicesCount = barberFinancialsData.reduce((sum, b) => sum + b.totalServices, 0);
 
       setTotalRevenue(revenue);
       setTotalCommissions(commissions);
       setTotalProfit(profit);
-      setTotalServices(services);
+      setTotalServices(totalServicesCount);
 
-      // Format transactions
-      const transactionsData: Transaction[] = enrichedAppointments.map((apt) => ({
-        id: apt.id,
-        date: apt.appointment_date,
-        client: apt.client.full_name,
-        service: apt.service.name,
-        barber: apt.barber.name,
-        value: Number(apt.service.price),
-        commission: (Number(apt.service.price) * 
-          (barbers.find(b => b.id === apt.barber_id)?.commission_percent || 0)) / 100,
-      }));
+      // Format transactions (last 10)
+      const transactionsData: Transaction[] = financialRecords.slice(0, 10).map((record) => {
+        const appointment = appointments?.find(a => a.id === record.appointment_id);
+        const client = profiles?.find(p => p.id === appointment?.client_id);
+        const service = services?.find(s => s.id === appointment?.service_id);
+        const barber = barbers.find(b => b.id === record.barber_id);
 
-      setTransactions(transactionsData.slice(0, 10)); // Show last 10
+        return {
+          id: record.id,
+          date: appointment?.appointment_date || record.created_at,
+          client: client?.full_name || "N/A",
+          service: service?.name || "N/A",
+          barber: barber?.name || "N/A",
+          value: Number(record.valor_total),
+          commission: Number(record.comissao_valor),
+        };
+      });
 
-      // Calculate pending revenue
+      setTransactions(transactionsData);
+
+      // Calculate pending revenue (appointments not yet completed)
+      const { data: pendingAppointments } = await supabase
+        .from("appointments")
+        .select(`
+          service_id
+        `)
+        .eq("barbershop_id", barbershop.id)
+        .in("status", ["pending", "confirmed"]);
+
       if (pendingAppointments && pendingAppointments.length > 0) {
-        const serviceIds = [...new Set(pendingAppointments.map(a => a.service_id))];
-        const { data: servicesData } = await supabase
+        const pendingServiceIds = [...new Set(pendingAppointments.map(a => a.service_id))];
+        const { data: pendingServices } = await supabase
           .from("services")
           .select("id, price")
-          .in("id", serviceIds);
+          .in("id", pendingServiceIds);
 
         const pendingTotal = pendingAppointments.reduce((sum, apt) => {
-          const service = servicesData?.find(s => s.id === apt.service_id);
+          const service = pendingServices?.find(s => s.id === apt.service_id);
           return sum + (service?.price || 0);
         }, 0);
 

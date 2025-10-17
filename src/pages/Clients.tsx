@@ -41,6 +41,26 @@ const Clients = () => {
 
   useEffect(() => {
     loadClients();
+    
+    // Set up realtime subscription for clients changes
+    const channel = supabase
+      .channel('clients-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'clients'
+        },
+        () => {
+          loadClients();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const loadClients = async () => {
@@ -56,56 +76,26 @@ const Clients = () => {
 
       if (!barbershop) return;
 
-      // Get all appointments with client info
-      const { data: appointments } = await supabase
-        .from("appointments")
-        .select(`
-          client_id,
-          appointment_date,
-          profiles!appointments_client_id_fkey (
-            id,
-            full_name,
-            phone
-          ),
-          services (
-            name
-          )
-        `)
+      // Get clients from the new clients table
+      const { data: clientsData } = await supabase
+        .from("clients")
+        .select("*")
         .eq("barbershop_id", barbershop.id)
-        .order("appointment_date", { ascending: false });
+        .order("last_appointment_at", { ascending: false });
 
-      if (!appointments) return;
+      if (clientsData) {
+        // Map to match the existing Client interface
+        const mappedClients: Client[] = clientsData.map(c => ({
+          id: c.id,
+          full_name: c.name,
+          phone: c.phone || "Não informado",
+          total_appointments: c.total_visits,
+          last_appointment_date: c.last_appointment_at,
+          last_service: null, // We'll get this from appointment history if needed
+        }));
 
-      // Group by client and calculate stats
-      const clientMap = new Map<string, Client>();
-
-      appointments.forEach((apt: any) => {
-        const clientId = apt.client_id;
-        const profile = apt.profiles;
-
-        if (!profile) return;
-
-        if (!clientMap.has(clientId)) {
-          clientMap.set(clientId, {
-            id: clientId,
-            full_name: profile.full_name,
-            phone: profile.phone || "Não informado",
-            total_appointments: 0,
-            last_appointment_date: null,
-            last_service: null,
-          });
-        }
-
-        const client = clientMap.get(clientId)!;
-        client.total_appointments++;
-
-        if (!client.last_appointment_date || apt.appointment_date > client.last_appointment_date) {
-          client.last_appointment_date = apt.appointment_date;
-          client.last_service = apt.services?.name || "Serviço não especificado";
-        }
-      });
-
-      setClients(Array.from(clientMap.values()));
+        setClients(mappedClients);
+      }
     } catch (error) {
       console.error("Erro ao carregar clientes:", error);
     } finally {

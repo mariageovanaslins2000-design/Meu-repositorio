@@ -150,7 +150,104 @@ const Appointments = () => {
 
   const confirmAppointment = async (appointmentId: string, servicePrice: number) => {
     try {
-      const { error } = await supabase
+      // Get barbershop
+      const { data: barbershop } = await supabase
+        .from("barbershops")
+        .select("id")
+        .eq("owner_id", user!.id)
+        .single();
+
+      if (!barbershop) throw new Error("Barbearia não encontrada");
+
+      // Get appointment details
+      const { data: appointment } = await supabase
+        .from("appointments")
+        .select(`
+          id,
+          client_id,
+          barber_id,
+          service_id,
+          appointment_date
+        `)
+        .eq("id", appointmentId)
+        .single();
+
+      if (!appointment) throw new Error("Agendamento não encontrado");
+
+      // Get client profile info
+      const { data: clientProfile } = await supabase
+        .from("profiles")
+        .select("full_name, phone")
+        .eq("id", appointment.client_id)
+        .single();
+
+      // Get barber commission
+      const { data: barber } = await supabase
+        .from("barbers")
+        .select("commission_percent")
+        .eq("id", appointment.barber_id)
+        .single();
+
+      if (!barber) throw new Error("Barbeiro não encontrado");
+
+      // Check if client exists in clients table
+      let clientRecord = await supabase
+        .from("clients")
+        .select("*")
+        .eq("barbershop_id", barbershop.id)
+        .eq("profile_id", appointment.client_id)
+        .maybeSingle();
+
+      if (!clientRecord.data) {
+        // Create new client record
+        const { error: clientError } = await supabase
+          .from("clients")
+          .insert({
+            barbershop_id: barbershop.id,
+            profile_id: appointment.client_id,
+            name: clientProfile?.full_name || "Cliente",
+            phone: clientProfile?.phone,
+            total_visits: 1,
+            last_appointment_at: appointment.appointment_date,
+          });
+
+        if (clientError) throw clientError;
+      } else {
+        // Update existing client record
+        const { error: updateError } = await supabase
+          .from("clients")
+          .update({
+            total_visits: (clientRecord.data.total_visits || 0) + 1,
+            last_appointment_at: appointment.appointment_date,
+          })
+          .eq("id", clientRecord.data.id);
+
+        if (updateError) throw updateError;
+      }
+
+      // Calculate commission
+      const commissionPercent = Number(barber.commission_percent) || 0;
+      const commissionValue = (servicePrice * commissionPercent) / 100;
+      const barbershopProfit = servicePrice - commissionValue;
+
+      // Create financial record
+      const { error: financialError } = await supabase
+        .from("financial_records")
+        .insert({
+          barbershop_id: barbershop.id,
+          appointment_id: appointment.id,
+          barber_id: appointment.barber_id,
+          valor_total: servicePrice,
+          comissao_percent: commissionPercent,
+          comissao_valor: commissionValue,
+          valor_liquido_barbearia: barbershopProfit,
+          status: "EFETIVADO",
+        });
+
+      if (financialError) throw financialError;
+
+      // Update appointment status
+      const { error: appointmentError } = await supabase
         .from("appointments")
         .update({ 
           status: "completed",
@@ -158,11 +255,11 @@ const Appointments = () => {
         })
         .eq("id", appointmentId);
 
-      if (error) throw error;
+      if (appointmentError) throw appointmentError;
 
       toast({
-        title: "Agendamento confirmado",
-        description: "Serviço confirmado e valor adicionado ao financeiro",
+        title: "Agendamento confirmado!",
+        description: "Cliente adicionado, valor registrado no financeiro",
       });
 
       loadData();
@@ -170,7 +267,7 @@ const Appointments = () => {
       console.error("Error confirming appointment:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível confirmar o agendamento",
+        description: error instanceof Error ? error.message : "Não foi possível confirmar",
         variant: "destructive",
       });
     }

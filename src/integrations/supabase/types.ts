@@ -173,6 +173,60 @@ export type Database = {
         }
         Relationships: []
       }
+      clients: {
+        Row: {
+          barbershop_id: string
+          created_at: string
+          email: string | null
+          id: string
+          last_appointment_at: string | null
+          name: string
+          phone: string | null
+          profile_id: string | null
+          total_visits: number
+          updated_at: string
+        }
+        Insert: {
+          barbershop_id: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_appointment_at?: string | null
+          name: string
+          phone?: string | null
+          profile_id?: string | null
+          total_visits?: number
+          updated_at?: string
+        }
+        Update: {
+          barbershop_id?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          last_appointment_at?: string | null
+          name?: string
+          phone?: string | null
+          profile_id?: string | null
+          total_visits?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_records: {
         Row: {
           appointment_id: string
