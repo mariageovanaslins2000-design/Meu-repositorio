@@ -19,6 +19,7 @@ const menuItems = [
   { icon: Calendar, label: "Agendamentos", path: "/admin/appointments" },
   { icon: Users, label: "Barbeiros", path: "/admin/barbers" },
   { icon: Briefcase, label: "Serviços", path: "/admin/services" },
+  { icon: Users, label: "Clientes", path: "/admin/clients" },
   { icon: DollarSign, label: "Financeiro", path: "/admin/financial" },
   { icon: Settings, label: "Configurações", path: "/admin/settings" },
 ];
@@ -46,7 +47,7 @@ export const Sidebar = () => {
   }, [user]);
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-sidebar border-r border-sidebar-border flex flex-col lg:flex hidden">
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">

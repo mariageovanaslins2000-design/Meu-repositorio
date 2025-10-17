@@ -19,10 +19,10 @@ export const Header = () => {
   
   return (
     <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
-      <div className="flex items-center justify-between px-8 py-4">
+      <div className="flex items-center justify-between px-4 lg:px-8 py-4">
         {/* Search */}
-        <div className="flex-1 max-w-md">
-          <div className="relative">
+        <div className="hidden lg:flex flex-1 max-w-md">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar agendamentos, clientes..."
@@ -30,6 +30,9 @@ export const Header = () => {
             />
           </div>
         </div>
+        
+        {/* Mobile spacer */}
+        <div className="flex-1 lg:hidden"></div>
 
         {/* Actions */}
         <div className="flex items-center gap-4">
