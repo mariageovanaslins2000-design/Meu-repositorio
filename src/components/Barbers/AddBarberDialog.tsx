@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,7 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AddBarberDialogProps {
   onBarberAdded: () => void;
@@ -23,13 +24,44 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: "",
     specialty: "",
     phone: "",
-    photo_url: "",
     commission_percent: "50",
   });
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('barber-photos')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('barber-photos')
+        .getPublicUrl(fileName);
+
+      setPhotoUrl(publicUrl);
+      
+      toast.success("Foto carregada com sucesso!");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao fazer upload da foto");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +86,7 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
         name: formData.name,
         specialty: formData.specialty || null,
         phone: formData.phone || null,
-        photo_url: formData.photo_url || null,
+        photo_url: photoUrl || null,
         commission_percent: parseFloat(formData.commission_percent),
         is_active: true,
       });
@@ -66,9 +98,9 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
         name: "",
         specialty: "",
         phone: "",
-        photo_url: "",
         commission_percent: "50",
       });
+      setPhotoUrl("");
       setOpen(false);
       onBarberAdded();
     } catch (error: any) {
@@ -95,6 +127,34 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex flex-col items-center gap-4">
+            <Avatar className="w-24 h-24">
+              {photoUrl && <AvatarImage src={photoUrl} />}
+              <AvatarFallback className="bg-gradient-gold text-2xl">
+                {formData.name.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {uploading ? "Enviando..." : photoUrl ? "Alterar Foto" : "Adicionar Foto"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="name">Nome Completo *</Label>
             <Input
@@ -122,17 +182,6 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
               placeholder="(11) 98765-4321"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="photo_url">URL da Foto</Label>
-            <Input
-              id="photo_url"
-              type="url"
-              placeholder="https://..."
-              value={formData.photo_url}
-              onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
             />
           </div>
 

@@ -173,6 +173,70 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_records: {
+        Row: {
+          appointment_id: string
+          barber_id: string
+          barbershop_id: string
+          comissao_percent: number
+          comissao_valor: number
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          valor_liquido_barbearia: number
+          valor_total: number
+        }
+        Insert: {
+          appointment_id: string
+          barber_id: string
+          barbershop_id: string
+          comissao_percent: number
+          comissao_valor: number
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          valor_liquido_barbearia: number
+          valor_total: number
+        }
+        Update: {
+          appointment_id?: string
+          barber_id?: string
+          barbershop_id?: string
+          comissao_percent?: number
+          comissao_valor?: number
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          valor_liquido_barbearia?: number
+          valor_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_records_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_records_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_records_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portfolio_images: {
         Row: {
           barbershop_id: string
