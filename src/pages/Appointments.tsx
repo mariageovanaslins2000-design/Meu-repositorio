@@ -148,6 +148,34 @@ const Appointments = () => {
     }
   };
 
+  const confirmAppointment = async (appointmentId: string, servicePrice: number) => {
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ 
+          status: "completed",
+          paid_amount: servicePrice 
+        })
+        .eq("id", appointmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Agendamento confirmado",
+        description: "Serviço confirmado e valor adicionado ao financeiro",
+      });
+
+      loadData();
+    } catch (error) {
+      console.error("Error confirming appointment:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível confirmar o agendamento",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
       pending: { variant: "secondary", label: "Pendente" },
@@ -226,45 +254,62 @@ const Appointments = () => {
                 {filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border"
+                    className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border"
                   >
-                    <div className="w-16 text-center">
-                      <p className="text-lg font-bold">
-                        {new Date(appointment.appointment_date).toLocaleTimeString('pt-BR', { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
-                        })}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {appointment.service.duration_minutes}min
-                      </p>
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-16 text-center flex-shrink-0">
+                        <p className="text-lg font-bold">
+                          {new Date(appointment.appointment_date).toLocaleTimeString('pt-BR', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {appointment.service.duration_minutes}min
+                        </p>
+                      </div>
+                      <div className="h-12 w-px bg-border hidden lg:block" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{appointment.client.full_name}</p>
+                        <p className="text-sm text-muted-foreground truncate">{appointment.service.name}</p>
+                        <p className="text-sm font-medium text-primary">R$ {appointment.service.price}</p>
+                      </div>
                     </div>
-                    <div className="h-12 w-px bg-border" />
-                    <div className="flex-1">
-                      <p className="font-medium">{appointment.client.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{appointment.service.name}</p>
-                      <p className="text-sm font-medium text-accent">R$ {appointment.service.price}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{appointment.barber.name}</p>
-                      <p className="text-xs text-muted-foreground">Barbeiro</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {getStatusBadge(appointment.status)}
-                      <Select 
-                        value={appointment.status} 
-                        onValueChange={(value) => updateStatus(appointment.id, value)}
-                      >
-                        <SelectTrigger className="w-[140px] h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pendente</SelectItem>
-                          <SelectItem value="confirmed">Confirmado</SelectItem>
-                          <SelectItem value="completed">Concluído</SelectItem>
-                          <SelectItem value="cancelled">Cancelado</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    
+                    <div className="flex items-center justify-between lg:justify-end gap-4 flex-wrap">
+                      <div className="text-left lg:text-right">
+                        <p className="text-sm font-medium">{appointment.barber.name}</p>
+                        <p className="text-xs text-muted-foreground">Barbeiro</p>
+                      </div>
+                      
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        {getStatusBadge(appointment.status)}
+                        
+                        {appointment.status !== "completed" && appointment.status !== "cancelled" && (
+                          <Button
+                            size="sm"
+                            onClick={() => confirmAppointment(appointment.id, appointment.service.price)}
+                            className="whitespace-nowrap"
+                          >
+                            Confirmar
+                          </Button>
+                        )}
+                        
+                        <Select 
+                          value={appointment.status} 
+                          onValueChange={(value) => updateStatus(appointment.id, value)}
+                        >
+                          <SelectTrigger className="w-[140px] h-8">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pending">Pendente</SelectItem>
+                            <SelectItem value="confirmed">Confirmado</SelectItem>
+                            <SelectItem value="completed">Concluído</SelectItem>
+                            <SelectItem value="cancelled">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </div>
                 ))}
