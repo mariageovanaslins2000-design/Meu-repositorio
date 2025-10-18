@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -7,7 +7,8 @@ import {
   DollarSign, 
   Settings,
   Scissors,
-  LogOut
+  LogOut,
+  Store
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,17 @@ export const Sidebar = () => {
             <p className="text-xs text-muted-foreground">Admin</p>
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          asChild
+        >
+          <Link to="/client">
+            <Store className="w-4 h-4 mr-2" />
+            Área do Cliente
+          </Link>
+        </Button>
         <Button
           variant="ghost"
           size="sm"

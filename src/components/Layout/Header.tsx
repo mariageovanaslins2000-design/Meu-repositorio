@@ -87,7 +87,7 @@ export const Header = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {hasRole("client") && (
+              {(hasRole("owner") || hasRole("client")) && (
                 <DropdownMenuItem asChild>
                   <Link to="/client" className="cursor-pointer">
                     <Store className="mr-2 h-4 w-4" />
