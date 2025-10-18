@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { InstallPrompt } from "@/components/PWA/InstallPrompt";
 import { ProtectedRoute } from "@/components/Auth/ProtectedRoute";
 import { AdminLayout } from "@/components/Layout/AdminLayout";
 import { ClientLayout } from "@/components/Layout/ClientLayout";
@@ -23,6 +24,7 @@ import ClientBarbers from "./pages/client/ClientBarbers";
 import ClientServices from "./pages/client/ClientServices";
 import ClientProfile from "./pages/client/ClientProfile";
 import ClientPortfolio from "./pages/client/ClientPortfolio";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,9 +36,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <InstallPrompt />
           <Routes>
             {/* Public Routes */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/install" element={<Install />} />
             
             {/* Admin Routes */}
             <Route
