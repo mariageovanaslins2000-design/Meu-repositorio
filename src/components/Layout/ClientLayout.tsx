@@ -13,13 +13,12 @@ export function ClientLayout() {
     const loadBarbershop = async () => {
       if (!user) return;
 
-      // Get the barbershop from the first appointment or use a default
+      // Get barbershop from client_barbershop link
       const { data } = await supabase
-        .from("appointments")
+        .from("client_barbershop")
         .select("barbershop_id")
-        .eq("client_id", user.id)
-        .limit(1)
-        .single();
+        .eq("profile_id", user.id)
+        .maybeSingle();
 
       if (data) {
         setBarbershopId(data.barbershop_id);

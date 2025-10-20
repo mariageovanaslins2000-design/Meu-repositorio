@@ -27,8 +27,10 @@ export default function ClientBooking() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (selectedDate && selectedBarber && selectedService) {
@@ -37,32 +39,47 @@ export default function ClientBooking() {
   }, [selectedDate, selectedBarber, selectedService]);
 
   const loadData = async () => {
+    if (!user) return;
+
     try {
-      // Load barbershop (assuming only one for now)
+      // Get user's barbershop link
+      const { data: linkData } = await supabase
+        .from("client_barbershop")
+        .select("barbershop_id")
+        .eq("profile_id", user.id)
+        .single();
+
+      if (!linkData) {
+        toast.error("Você não está vinculado a nenhuma barbearia");
+        return;
+      }
+
+      // Load barbershop details
       const { data: barbershopData } = await supabase
         .from("barbershops")
         .select("*")
+        .eq("id", linkData.barbershop_id)
         .single();
       
       setBarbershop(barbershopData);
 
       if (barbershopData) {
-      // Load services
-      const { data: servicesData } = await supabase
-        .from("services")
-        .select("*")
-        .eq("barbershop_id", barbershopData.id)
-        .eq("is_active", true);
-      
-      setServices(servicesData || []);
-
-      // Load barbers
-      const { data: barbersData } = await supabase
-        .from("barbers")
-        .select("*")
-        .eq("barbershop_id", barbershopData.id)
-        .eq("is_active", true);
+        // Load services - RLS will automatically filter by barbershop
+        const { data: servicesData } = await supabase
+          .from("services")
+          .select("*")
+          .eq("is_active", true)
+          .order("name");
         
+        setServices(servicesData || []);
+
+        // Load barbers - RLS will automatically filter by barbershop
+        const { data: barbersData } = await supabase
+          .from("barbers")
+          .select("*")
+          .eq("is_active", true)
+          .order("name");
+          
         setBarbers(barbersData || []);
       }
     } catch (error) {

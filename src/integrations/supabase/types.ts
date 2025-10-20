@@ -173,6 +173,42 @@ export type Database = {
         }
         Relationships: []
       }
+      client_barbershop: {
+        Row: {
+          barbershop_id: string
+          created_at: string | null
+          id: string
+          profile_id: string
+        }
+        Insert: {
+          barbershop_id: string
+          created_at?: string | null
+          id?: string
+          profile_id: string
+        }
+        Update: {
+          barbershop_id?: string
+          created_at?: string | null
+          id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_barbershop_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_barbershop_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           barbershop_id: string
@@ -429,6 +465,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_barbershop_id: {
+        Args: { user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
