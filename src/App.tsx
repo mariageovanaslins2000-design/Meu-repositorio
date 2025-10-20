@@ -24,6 +24,7 @@ import ClientBarbers from "./pages/client/ClientBarbers";
 import ClientServices from "./pages/client/ClientServices";
 import ClientProfile from "./pages/client/ClientProfile";
 import ClientPortfolio from "./pages/client/ClientPortfolio";
+import SelectBarbershop from "./pages/client/SelectBarbershop";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
@@ -71,6 +72,7 @@ const App = () => (
               }
             >
               <Route index element={<ClientHome />} />
+              <Route path="select-barbershop" element={<SelectBarbershop />} />
               <Route path="booking" element={<ClientBooking />} />
               <Route path="appointments" element={<ClientAppointments />} />
               <Route path="barbers" element={<ClientBarbers />} />

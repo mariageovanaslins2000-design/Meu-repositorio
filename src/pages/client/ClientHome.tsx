@@ -1,21 +1,40 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, User } from "lucide-react";
+import { Calendar, Clock, User, Store } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function ClientHome() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasBarbershop, setHasBarbershop] = useState(true);
 
   useEffect(() => {
+    checkBarbershopLink();
     loadUpcomingAppointments();
   }, [user]);
+
+  const checkBarbershopLink = async () => {
+    if (!user) return;
+
+    try {
+      const { data } = await supabase
+        .from("client_barbershop")
+        .select("barbershop_id")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+
+      setHasBarbershop(!!data);
+    } catch (error) {
+      console.error("Error checking barbershop link:", error);
+    }
+  };
 
   const loadUpcomingAppointments = async () => {
     if (!user) return;
@@ -42,6 +61,42 @@ export default function ClientHome() {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!hasBarbershop) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-8 text-center">
+        <div className="space-y-2">
+          <Store className="h-16 w-16 mx-auto text-primary" />
+          <h1 className="text-3xl font-bold">Bem-vindo!</h1>
+          <p className="text-muted-foreground">
+            Para começar a usar o sistema, você precisa selecionar uma barbearia
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Próximos Passos</CardTitle>
+            <CardDescription>
+              Escolha uma barbearia para acessar todos os recursos
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate("/client/select-barbershop")} className="w-full">
+              Selecionar Barbearia
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
