@@ -1,4 +1,4 @@
-import { Upload, Palette, Bell, User } from "lucide-react";
+import { Upload, Palette, Bell, User, Link2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -23,10 +23,18 @@ const Settings = () => {
     secondary_color: "#1A1A1A",
   });
   const [barbershopId, setBarbershopId] = useState<string | null>(null);
+  const [clientSignupLink, setClientSignupLink] = useState<string>("");
 
   useEffect(() => {
     loadBarbershop();
   }, [user]);
+
+  useEffect(() => {
+    if (barbershopId) {
+      const link = `${window.location.origin}/cadastro-cliente?idBarbearia=${barbershopId}`;
+      setClientSignupLink(link);
+    }
+  }, [barbershopId]);
 
   const loadBarbershop = async () => {
     if (!user) return;
@@ -263,6 +271,36 @@ const Settings = () => {
                 As cores serão aplicadas após salvar e recarregar a página
               </p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Client Signup Link */}
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="w-5 h-5" />
+              Link de Cadastro para Clientes
+            </CardTitle>
+            <CardDescription>Compartilhe este link para que clientes possam se cadastrar</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 rounded-lg bg-muted/50 break-all">
+              <p className="text-sm font-mono">{clientSignupLink || "Carregando..."}</p>
+            </div>
+            <Button
+              onClick={() => {
+                navigator.clipboard.writeText(clientSignupLink);
+                toast.success("Link copiado para a área de transferência!");
+              }}
+              className="w-full"
+              disabled={!clientSignupLink}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copiar Link
+            </Button>
+            <p className="text-xs text-muted-foreground">
+              Clientes que se cadastrarem através deste link serão automaticamente vinculados à sua barbearia.
+            </p>
           </CardContent>
         </Card>
 

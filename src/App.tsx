@@ -25,6 +25,8 @@ import ClientServices from "./pages/client/ClientServices";
 import ClientProfile from "./pages/client/ClientProfile";
 import ClientPortfolio from "./pages/client/ClientPortfolio";
 import SelectBarbershop from "./pages/client/SelectBarbershop";
+import ClientSignup from "./pages/ClientSignup";
+import ClientLogin from "./pages/ClientLogin";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +43,8 @@ const App = () => (
           <Routes>
             {/* Public Routes */}
             <Route path="/auth" element={<Auth />} />
+            <Route path="/cadastro-cliente" element={<ClientSignup />} />
+            <Route path="/login-cliente" element={<ClientLogin />} />
             <Route path="/install" element={<Install />} />
             
             {/* Admin Routes */}

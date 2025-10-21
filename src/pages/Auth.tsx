@@ -24,7 +24,7 @@ const signInSchema = z.object({
 export default function Auth() {
   const { signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [accountType, setAccountType] = useState<"owner" | "client">("client");
+  const accountType = "owner"; // Fixed to owner only
 
   const [signUpData, setSignUpData] = useState({
     email: "",
@@ -153,28 +153,6 @@ export default function Auth() {
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Tipo de Conta</Label>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant={accountType === "client" ? "default" : "outline"}
-                      onClick={() => setAccountType("client")}
-                      className="flex-1"
-                    >
-                      Cliente
-                    </Button>
-                    <Button
-                      type="button"
-                      variant={accountType === "owner" ? "default" : "outline"}
-                      onClick={() => setAccountType("owner")}
-                      className="flex-1"
-                    >
-                      Dono de Barbearia
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="fullname">Nome Completo</Label>
                   <Input
                     id="fullname"
@@ -198,19 +176,17 @@ export default function Auth() {
                   {errors.phone && <p className="text-sm text-destructive">{errors.phone}</p>}
                 </div>
 
-                {accountType === "owner" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="barbershop">Nome da Barbearia</Label>
-                    <Input
-                      id="barbershop"
-                      placeholder="Minha Barbearia"
-                      value={signUpData.barbershopName}
-                      onChange={(e) => setSignUpData({ ...signUpData, barbershopName: e.target.value })}
-                      required
-                    />
-                    {errors.barbershopName && <p className="text-sm text-destructive">{errors.barbershopName}</p>}
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="barbershop">Nome da Barbearia</Label>
+                  <Input
+                    id="barbershop"
+                    placeholder="Minha Barbearia"
+                    value={signUpData.barbershopName}
+                    onChange={(e) => setSignUpData({ ...signUpData, barbershopName: e.target.value })}
+                    required
+                  />
+                  {errors.barbershopName && <p className="text-sm text-destructive">{errors.barbershopName}</p>}
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
