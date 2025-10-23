@@ -64,23 +64,37 @@ export default function ClientBooking() {
       setBarbershop(barbershopData);
 
       if (barbershopData) {
-        // Load services - RLS will automatically filter by barbershop
-        const { data: servicesData } = await supabase
+        // Load services - filter explicitly by barbershop_id
+        const { data: servicesData, error: servicesError } = await supabase
           .from("services")
           .select("*")
+          .eq("barbershop_id", linkData.barbershop_id)
           .eq("is_active", true)
           .order("name");
-        
-        setServices(servicesData || []);
 
-        // Load barbers - RLS will automatically filter by barbershop
-        const { data: barbersData } = await supabase
+        if (servicesError) {
+          console.error("Error loading services:", servicesError);
+          toast.error("Erro ao carregar serviços");
+        } else {
+          console.log("Services loaded:", servicesData?.length || 0);
+          setServices(servicesData || []);
+        }
+
+        // Load barbers - filter explicitly by barbershop_id
+        const { data: barbersData, error: barbersError } = await supabase
           .from("barbers")
           .select("*")
+          .eq("barbershop_id", linkData.barbershop_id)
           .eq("is_active", true)
           .order("name");
-          
-        setBarbers(barbersData || []);
+
+        if (barbersError) {
+          console.error("Error loading barbers:", barbersError);
+          toast.error("Erro ao carregar barbeiros");
+        } else {
+          console.log("Barbers loaded:", barbersData?.length || 0);
+          setBarbers(barbersData || []);
+        }
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -215,31 +229,40 @@ export default function ClientBooking() {
       {step === 1 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Escolha o Serviço</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {services.map((service) => (
-              <Card
-                key={service.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${
-                  selectedService?.id === service.id ? "ring-2 ring-primary" : ""
-                }`}
-                onClick={() => {
-                  setSelectedService(service);
-                  setStep(2);
-                }}
-              >
-                <CardHeader>
-                  <CardTitle>{service.name}</CardTitle>
-                  <CardDescription>{service.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
-                    <span className="text-sm text-muted-foreground">{service.duration_minutes} min</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {services.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <p>Nenhum serviço disponível no momento.</p>
+                <p className="text-sm mt-2">Entre em contato com a barbearia.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {services.map((service) => (
+                <Card
+                  key={service.id}
+                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                    selectedService?.id === service.id ? "ring-2 ring-primary" : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedService(service);
+                    setStep(2);
+                  }}
+                >
+                  <CardHeader>
+                    <CardTitle>{service.name}</CardTitle>
+                    <CardDescription>{service.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-between items-center">
+                      <span className="text-2xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
+                      <span className="text-sm text-muted-foreground">{service.duration_minutes} min</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -247,28 +270,37 @@ export default function ClientBooking() {
       {step === 2 && (
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Escolha o Barbeiro</h2>
-          <div className="grid gap-4 md:grid-cols-3">
-            {barbers.map((barber) => (
-              <Card
-                key={barber.id}
-                className={`cursor-pointer transition-all hover:shadow-lg ${
-                  selectedBarber?.id === barber.id ? "ring-2 ring-primary" : ""
-                }`}
-                onClick={() => {
-                  setSelectedBarber(barber);
-                  setStep(3);
-                }}
-              >
-                <CardHeader className="text-center">
-                  <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center text-2xl font-bold">
-                    {barber.name.charAt(0)}
-                  </div>
-                  <CardTitle>{barber.name}</CardTitle>
-                  {barber.specialty && <CardDescription>{barber.specialty}</CardDescription>}
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+          {barbers.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground">
+                <p>Nenhum barbeiro disponível no momento.</p>
+                <p className="text-sm mt-2">Entre em contato com a barbearia.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              {barbers.map((barber) => (
+                <Card
+                  key={barber.id}
+                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                    selectedBarber?.id === barber.id ? "ring-2 ring-primary" : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedBarber(barber);
+                    setStep(3);
+                  }}
+                >
+                  <CardHeader className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center text-2xl font-bold">
+                      {barber.name.charAt(0)}
+                    </div>
+                    <CardTitle>{barber.name}</CardTitle>
+                    {barber.specialty && <CardDescription>{barber.specialty}</CardDescription>}
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          )}
           <Button variant="outline" onClick={() => setStep(1)}>
             Voltar
           </Button>

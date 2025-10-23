@@ -33,6 +33,18 @@ export default function ClientSignup() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    // Check if user is already logged in
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        toast.error("Você já está logado. Por favor, faça logout antes de se cadastrar como cliente.");
+        navigate("/auth");
+        return;
+      }
+    };
+
+    checkSession();
+
     const id = searchParams.get("idBarbearia");
     if (!id) {
       toast.error("Link inválido. Por favor, solicite um novo link à barbearia.");
@@ -50,13 +62,20 @@ export default function ClientSignup() {
         .from("barbershops")
         .select("name")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      
+      if (!data) {
+        toast.error("Barbearia não encontrada. Verifique se o link está correto.");
+        navigate("/auth");
+        return;
+      }
+      
       setBarbershopName(data.name);
     } catch (error) {
       console.error("Erro ao carregar barbearia:", error);
-      toast.error("Barbearia não encontrada");
+      toast.error("Erro ao carregar informações da barbearia. Tente novamente.");
       navigate("/auth");
     }
   };

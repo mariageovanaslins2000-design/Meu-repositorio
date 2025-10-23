@@ -281,7 +281,12 @@ const Settings = () => {
               <Link2 className="w-5 h-5" />
               Link de Cadastro para Clientes
             </CardTitle>
-            <CardDescription>Compartilhe este link para que clientes possam se cadastrar</CardDescription>
+            <CardDescription>
+              Compartilhe este link para que novos clientes possam se cadastrar na sua barbearia.
+              <br />
+              <strong className="text-primary">Importante:</strong> Este link é exclusivo para <strong>novos clientes</strong>. 
+              Se você já está logado como proprietário, precisará fazer logout para testar o cadastro como cliente.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="p-4 rounded-lg bg-muted/50 break-all">
