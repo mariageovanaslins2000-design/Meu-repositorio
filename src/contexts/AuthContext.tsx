@@ -160,7 +160,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       
       toast.success("Logout realizado com sucesso!");
-      navigate("/auth");
+      
+      // Redirect based on user role
+      if (hasRole("client")) {
+        navigate("/login-cliente");
+      } else if (hasRole("owner")) {
+        navigate("/auth");
+      } else {
+        navigate("/");
+      }
     } catch (error: any) {
       console.error("Signout error:", error);
       toast.error("Erro ao fazer logout");
