@@ -120,20 +120,14 @@ export default function ClientLogin() {
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              Não tem uma conta?{" "}
-              <span className="text-foreground">
-                Solicite o link de cadastro à barbearia
-              </span>
-            </div>
-
-            <div className="text-center">
+              Não tem conta ainda?{" "}
               <Button
                 type="button"
                 variant="link"
-                className="text-sm"
-                onClick={() => navigate("/auth")}
+                className="text-sm p-0 h-auto font-normal text-primary"
+                onClick={() => navigate("/client/select-barbershop")}
               >
-                Área Administrativa
+                Crie sua conta
               </Button>
             </div>
           </form>
