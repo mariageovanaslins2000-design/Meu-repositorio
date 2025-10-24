@@ -28,6 +28,7 @@ import SelectBarbershop from "./pages/client/SelectBarbershop";
 import ClientSignup from "./pages/ClientSignup";
 import ClientLogin from "./pages/ClientLogin";
 import Install from "./pages/Install";
+import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
           <InstallPrompt />
           <Routes>
             {/* Public Routes */}
+            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastro-cliente" element={<ClientSignup />} />
             <Route path="/login-cliente" element={<ClientLogin />} />
@@ -85,8 +87,7 @@ const App = () => (
               <Route path="profile" element={<ClientProfile />} />
             </Route>
 
-            {/* Default redirect to auth */}
-            <Route path="/" element={<Navigate to="/auth" replace />} />
+            {/* Default redirect to home */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

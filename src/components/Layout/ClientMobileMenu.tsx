@@ -1,12 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, Menu, User, LogOut, Settings2, Image } from "lucide-react";
+import { Scissors, Home, Calendar, Users, Briefcase, Menu, User, LogOut, Image } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
 export function ClientMobileMenu() {
-  const { signOut, user, hasRole } = useAuth();
+  const { signOut, user } = useAuth();
   const location = useLocation();
   const [open, setOpen] = useState(false);
 
@@ -71,16 +71,6 @@ export function ClientMobileMenu() {
                 <User className="h-5 w-5" />
                 <span>Meu Perfil</span>
               </Link>
-              {hasRole("owner") && (
-                <Link
-                  to="/admin"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
-                >
-                  <Settings2 className="h-5 w-5" />
-                  <span>Painel Admin</span>
-                </Link>
-              )}
               <button
                 onClick={() => {
                   setOpen(false);

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Settings2, Image } from "lucide-react";
+import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Image } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ClientMobileMenu } from "./ClientMobileMenu";
 
 export function ClientHeader() {
-  const { signOut, user, hasRole } = useAuth();
+  const { signOut, user } = useAuth();
   const location = useLocation();
   const [barbershop, setBarbershop] = useState<{ name: string; logo_url: string } | null>(null);
 
@@ -111,14 +111,6 @@ export function ClientHeader() {
                 Meu Perfil
               </Link>
             </DropdownMenuItem>
-            {hasRole("owner") && (
-              <DropdownMenuItem asChild>
-                <Link to="/admin" className="cursor-pointer">
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Painel Admin
-                </Link>
-              </DropdownMenuItem>
-            )}
             <DropdownMenuItem onClick={signOut} className="cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
               Sair
