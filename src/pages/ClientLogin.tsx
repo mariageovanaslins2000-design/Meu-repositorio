@@ -125,7 +125,7 @@ export default function ClientLogin() {
                 type="button"
                 variant="link"
                 className="text-sm p-0 h-auto font-normal text-primary"
-                onClick={() => navigate("/client/select-barbershop")}
+                onClick={() => navigate("/selecionar-barbearia")}
               >
                 Crie sua conta
               </Button>
