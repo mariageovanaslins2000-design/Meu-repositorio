@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
-import { DollarSign, TrendingUp, Wallet, Users } from "lucide-react";
+import { DollarSign, TrendingUp, Wallet, Users, CalendarIcon, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, startOfMonth, endOfMonth } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -43,11 +49,13 @@ const Financial = () => {
   const [totalProfit, setTotalProfit] = useState(0);
   const [totalServices, setTotalServices] = useState(0);
   const [pendingRevenue, setPendingRevenue] = useState(0);
+  const [startDate, setStartDate] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [endDate, setEndDate] = useState<Date | undefined>(endOfMonth(new Date()));
   const { user } = useAuth();
 
   useEffect(() => {
     loadFinancialData();
-  }, [user]);
+  }, [user, startDate, endDate]);
 
   const loadFinancialData = async () => {
     if (!user) return;
@@ -64,8 +72,8 @@ const Financial = () => {
 
       if (!barbershop) return;
 
-      // Get all financial records
-      const { data: financialRecords } = await supabase
+      // Get all financial records with date filter
+      let query = supabase
         .from("financial_records")
         .select(`
           id,
@@ -79,8 +87,21 @@ const Financial = () => {
           created_at
         `)
         .eq("barbershop_id", barbershop.id)
-        .eq("status", "EFETIVADO")
-        .order("created_at", { ascending: false });
+        .eq("status", "EFETIVADO");
+
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        query = query.gte("created_at", start.toISOString());
+      }
+
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query = query.lte("created_at", end.toISOString());
+      }
+
+      const { data: financialRecords } = await query.order("created_at", { ascending: false });
 
       if (!financialRecords || financialRecords.length === 0) {
         setLoading(false);
@@ -253,6 +274,11 @@ const Financial = () => {
     );
   }
 
+  const handleClearFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -260,6 +286,79 @@ const Financial = () => {
         <h1 className="text-3xl font-bold">Financeiro</h1>
         <p className="text-muted-foreground">Acompanhe receitas, comissões e lucros por barbeiro</p>
       </div>
+
+      {/* Date Filter */}
+      <Card className="shadow-elegant">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Filtrar por período:</span>
+            </div>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Data inicial"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <span className="text-muted-foreground">até</span>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Data final"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={setEndDate}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearFilters}
+                className="h-9"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Limpar filtros
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
 type Appointment = {
@@ -26,6 +30,8 @@ type Barber = {
 
 const Appointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<string>("all");
@@ -34,7 +40,7 @@ const Appointments = () => {
 
   useEffect(() => {
     loadData();
-  }, [user, date]);
+  }, [user, date, startDate, endDate]);
 
   const loadData = async () => {
     if (!user) return;
@@ -60,13 +66,8 @@ const Appointments = () => {
 
       setBarbers(barbersData || []);
 
-      // Load appointments for selected date
-      const startOfDay = new Date(date || new Date());
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(date || new Date());
-      endOfDay.setHours(23, 59, 59, 999);
-
-      const { data: appointmentsData } = await supabase
+      // Load appointments - use period filter if set, otherwise use single date
+      let query = supabase
         .from("appointments")
         .select(`
           id,
@@ -76,10 +77,29 @@ const Appointments = () => {
           barber_id,
           service_id
         `)
-        .eq("barbershop_id", barbershop.id)
-        .gte("appointment_date", startOfDay.toISOString())
-        .lte("appointment_date", endOfDay.toISOString())
-        .order("appointment_date", { ascending: true });
+        .eq("barbershop_id", barbershop.id);
+
+      if (startDate && endDate) {
+        // Period filter mode
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query = query
+          .gte("appointment_date", start.toISOString())
+          .lte("appointment_date", end.toISOString());
+      } else if (date) {
+        // Single day filter mode
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        query = query
+          .gte("appointment_date", startOfDay.toISOString())
+          .lte("appointment_date", endOfDay.toISOString());
+      }
+
+      const { data: appointmentsData } = await query.order("appointment_date", { ascending: true });
 
       // Fetch related data separately
       if (appointmentsData && appointmentsData.length > 0) {
@@ -289,6 +309,12 @@ const Appointments = () => {
     ? appointments 
     : appointments.filter(apt => apt.barber.id === selectedBarber);
 
+  const handleClearPeriodFilter = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+    setDate(new Date());
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -296,6 +322,79 @@ const Appointments = () => {
         <h1 className="text-3xl font-bold">Agendamentos</h1>
         <p className="text-muted-foreground">Gerencie todos os agendamentos por barbeiro</p>
       </div>
+
+      {/* Period Filter */}
+      <Card className="shadow-elegant">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Filtrar por período:</span>
+            </div>
+            
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Data inicial"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            <span className="text-muted-foreground">até</span>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Data final"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={setEndDate}
+                  initialFocus
+                  className="pointer-events-auto"
+                />
+              </PopoverContent>
+            </Popover>
+
+            {(startDate || endDate) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearPeriodFilter}
+                className="h-9"
+              >
+                <X className="mr-2 h-4 w-4" />
+                Limpar período
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
@@ -322,7 +421,7 @@ const Appointments = () => {
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Agendamentos do Dia
+                {startDate && endDate ? "Agendamentos do Período" : "Agendamentos do Dia"}
               </CardTitle>
               <Select value={selectedBarber} onValueChange={setSelectedBarber}>
                 <SelectTrigger className="w-[200px]">

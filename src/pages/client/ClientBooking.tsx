@@ -25,6 +25,7 @@ export default function ClientBooking() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -167,11 +168,14 @@ export default function ClientBooking() {
   };
 
   const handleCreateAppointment = async () => {
+    if (isSubmitting) return;
+    
     if (!user || !selectedService || !selectedBarber || !selectedDate || !selectedTime) {
       toast.error("Preencha todos os campos");
       return;
     }
 
+    setIsSubmitting(true);
     setLoading(true);
 
     try {
@@ -197,6 +201,7 @@ export default function ClientBooking() {
       toast.error("Erro ao criar agendamento");
     } finally {
       setLoading(false);
+      setTimeout(() => setIsSubmitting(false), 2000);
     }
   };
 
@@ -418,10 +423,10 @@ export default function ClientBooking() {
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(3)} className="flex-1">
+                <Button variant="outline" onClick={() => setStep(3)} className="flex-1" disabled={isSubmitting}>
                   Voltar
                 </Button>
-                <Button onClick={handleCreateAppointment} disabled={loading} className="flex-1">
+                <Button onClick={handleCreateAppointment} disabled={loading || isSubmitting} className="flex-1">
                   {loading ? "Confirmando..." : "Confirmar Agendamento"}
                 </Button>
               </div>
