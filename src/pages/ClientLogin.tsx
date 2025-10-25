@@ -119,16 +119,10 @@ export default function ClientLogin() {
               {isLoading ? "Entrando..." : "Entrar"}
             </Button>
 
-            <div className="text-center text-sm text-muted-foreground">
-              Não tem conta ainda?{" "}
-              <Button
-                type="button"
-                variant="link"
-                className="text-sm p-0 h-auto font-normal text-primary"
-                onClick={() => navigate("/selecionar-barbearia")}
-              >
-                Crie sua conta
-              </Button>
+            <div className="text-center mt-4">
+              <p className="text-sm text-muted-foreground">
+                Não tem conta? Solicite o link de cadastro à sua barbearia.
+              </p>
             </div>
           </form>
         </CardContent>

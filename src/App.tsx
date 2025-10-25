@@ -27,7 +27,7 @@ import ClientPortfolio from "./pages/client/ClientPortfolio";
 import SelectBarbershop from "./pages/client/SelectBarbershop";
 import ClientSignup from "./pages/ClientSignup";
 import ClientLogin from "./pages/ClientLogin";
-import PublicBarbershopSelection from "./pages/PublicBarbershopSelection";
+
 import Install from "./pages/Install";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -48,7 +48,6 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/cadastro-cliente" element={<ClientSignup />} />
             <Route path="/login-cliente" element={<ClientLogin />} />
-            <Route path="/selecionar-barbearia" element={<PublicBarbershopSelection />} />
             <Route path="/install" element={<Install />} />
             
             {/* Admin Routes */}
