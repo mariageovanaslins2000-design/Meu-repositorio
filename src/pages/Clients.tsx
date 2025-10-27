@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Phone, Calendar, TrendingUp } from "lucide-react";
+import { Users, Phone, Calendar, TrendingUp, Search, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -16,11 +18,13 @@ import { ptBR } from "date-fns/locale";
 
 interface Client {
   id: string;
+  profile_id: string | null;
   full_name: string;
   phone: string;
   total_appointments: number;
   last_appointment_date: string | null;
   last_service: string | null;
+  created_at: string;
 }
 
 interface AppointmentHistory {
@@ -38,6 +42,8 @@ const Clients = () => {
   const [loading, setLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [appointmentHistory, setAppointmentHistory] = useState<AppointmentHistory[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTab, setFilterTab] = useState("todos");
 
   useEffect(() => {
     loadClients();
@@ -87,11 +93,13 @@ const Clients = () => {
         // Map to match the existing Client interface
         const mappedClients: Client[] = clientsData.map(c => ({
           id: c.id,
+          profile_id: c.profile_id,
           full_name: c.name,
           phone: c.phone || "Não informado",
           total_appointments: c.total_visits,
           last_appointment_date: c.last_appointment_at,
-          last_service: null, // We'll get this from appointment history if needed
+          last_service: null,
+          created_at: c.created_at,
         }));
 
         setClients(mappedClients);
@@ -180,6 +188,22 @@ const Clients = () => {
     }
   };
 
+  // Filter clients based on search and active filter
+  const filteredClients = clients.filter(client => {
+    const matchesSearch = 
+      client.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.phone.includes(searchQuery);
+    
+    const isActive = client.total_appointments > 0;
+    
+    if (filterTab === "ativos") return matchesSearch && isActive;
+    if (filterTab === "inativos") return matchesSearch && !isActive;
+    return matchesSearch; // "todos"
+  });
+
+  const activeClients = clients.filter(c => c.total_appointments > 0).length;
+  const inactiveClients = clients.length - activeClients;
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -196,45 +220,41 @@ const Clients = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Clientes</h1>
-        <p className="text-muted-foreground">Gerencie sua base de clientes</p>
+        <p className="text-muted-foreground">Gerencie sua base de clientes cadastrados</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{clients.filter(c => c.total_appointments > 0).length}</div>
-            <p className="text-xs text-muted-foreground">Com agendamentos confirmados</p>
+            <div className="text-2xl font-bold">{clients.length}</div>
+            <p className="text-xs text-muted-foreground">Cadastrados na barbearia</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Agendamentos</CardTitle>
+            <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
             <Calendar className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {clients.reduce((acc, client) => acc + client.total_appointments, 0)}
-            </div>
+            <div className="text-2xl font-bold">{activeClients}</div>
+            <p className="text-xs text-muted-foreground">Com agendamentos realizados</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Média por Cliente</CardTitle>
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Clientes Inativos</CardTitle>
+            <UserX className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {clients.length > 0
-                ? (clients.reduce((acc, client) => acc + client.total_appointments, 0) / clients.length).toFixed(1)
-                : "0"}
-            </div>
+            <div className="text-2xl font-bold">{inactiveClients}</div>
+            <p className="text-xs text-muted-foreground">Cadastrados sem agendamentos</p>
           </CardContent>
         </Card>
       </div>
@@ -244,9 +264,34 @@ const Clients = () => {
         <CardHeader>
           <CardTitle>Lista de Clientes</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {clients.map((client) => (
+        <CardContent className="space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Buscar por nome ou telefone..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          {/* Filter Tabs */}
+          <Tabs value={filterTab} onValueChange={setFilterTab}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="todos">
+                Todos ({clients.length})
+              </TabsTrigger>
+              <TabsTrigger value="ativos">
+                Ativos ({activeClients})
+              </TabsTrigger>
+              <TabsTrigger value="inativos">
+                Inativos ({inactiveClients})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value={filterTab} className="mt-4 space-y-4">
+              {filteredClients.map((client) => (
               <div
                 key={client.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors gap-4"
@@ -270,12 +315,18 @@ const Clients = () => {
                         <span>{client.total_appointments} agendamentos</span>
                       </div>
                     </div>
-                    {client.last_appointment_date && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Último: {client.last_service} -{" "}
-                        {format(new Date(client.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
+                    <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                      <p>
+                        Cadastrado em: {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </p>
-                    )}
+                      {client.last_appointment_date ? (
+                        <p>
+                          Último agendamento: {format(new Date(client.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
+                        </p>
+                      ) : (
+                        <p className="text-yellow-600">Sem agendamentos ainda</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -286,9 +337,12 @@ const Clients = () => {
                       size="sm"
                       onClick={() => {
                         setSelectedClient(client);
-                        loadClientHistory(client.id);
+                        if (client.profile_id) {
+                          loadClientHistory(client.profile_id);
+                        }
                       }}
                       className="w-full sm:w-auto"
+                      disabled={client.total_appointments === 0}
                     >
                       Ver Histórico
                     </Button>
@@ -339,16 +393,27 @@ const Clients = () => {
               </div>
             ))}
 
+            {filteredClients.length === 0 && clients.length > 0 && (
+              <div className="text-center py-12">
+                <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Nenhum cliente encontrado</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Tente ajustar os filtros ou a busca
+                </p>
+              </div>
+            )}
+
             {clients.length === 0 && (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Nenhum cliente cadastrado ainda</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Os clientes aparecerão aqui automaticamente após realizarem agendamentos
+                  Compartilhe o link de cadastro para seus clientes se cadastrarem
                 </p>
               </div>
             )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>
