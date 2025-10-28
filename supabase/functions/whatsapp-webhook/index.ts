@@ -1,0 +1,427 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface EvolutionMessage {
+  event: string;
+  instance: string;
+  data: {
+    key: {
+      remoteJid: string;
+      fromMe: boolean;
+    };
+    message: {
+      conversation?: string;
+      extendedTextMessage?: {
+        text: string;
+      };
+    };
+    pushName: string;
+  };
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL');
+    const EVOLUTION_API_KEY = Deno.env.get('EVOLUTION_API_KEY');
+    const EVOLUTION_INSTANCE_NAME = Deno.env.get('EVOLUTION_INSTANCE_NAME');
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !EVOLUTION_INSTANCE_NAME || !LOVABLE_API_KEY) {
+      throw new Error('Missing required environment variables');
+    }
+
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
+    const payload: EvolutionMessage = await req.json();
+
+    console.log('[WhatsApp] Received webhook:', JSON.stringify(payload, null, 2));
+
+    // Ignore messages from the bot itself
+    if (payload.data.key.fromMe) {
+      return new Response(JSON.stringify({ status: 'ignored', reason: 'message from bot' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Extract phone number and message
+    const phoneNumber = payload.data.key.remoteJid.replace('@s.whatsapp.net', '');
+    const userMessage = payload.data.message.conversation || 
+                       payload.data.message.extendedTextMessage?.text || '';
+    const pushName = payload.data.pushName || 'Cliente';
+
+    console.log('[WhatsApp] Processing message from:', phoneNumber, '- Message:', userMessage);
+
+    // Find or create profile
+    let { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('phone', phoneNumber)
+      .maybeSingle();
+
+    if (!profile) {
+      console.log('[WhatsApp] Creating new profile for:', phoneNumber);
+      const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
+        phone: phoneNumber,
+        phone_confirm: true,
+        user_metadata: { full_name: pushName }
+      });
+
+      if (userError) throw userError;
+
+      profile = { id: newUser.user.id, phone: phoneNumber, full_name: pushName };
+    }
+
+    // Get barbershop (assuming first one for now)
+    const { data: barbershop } = await supabase
+      .from('barbershops')
+      .select('*')
+      .limit(1)
+      .single();
+
+    if (!barbershop) {
+      throw new Error('No barbershop found');
+    }
+
+    // Find or create conversation
+    let { data: conversation } = await supabase
+      .from('whatsapp_conversations')
+      .select('*')
+      .eq('phone_number', phoneNumber)
+      .eq('barbershop_id', barbershop.id)
+      .maybeSingle();
+
+    if (!conversation) {
+      const { data: newConv } = await supabase
+        .from('whatsapp_conversations')
+        .insert({
+          phone_number: phoneNumber,
+          profile_id: profile.id,
+          barbershop_id: barbershop.id,
+          conversation_state: { messages_history: [] }
+        })
+        .select()
+        .single();
+      conversation = newConv;
+    }
+
+    // Get conversation history
+    const messagesHistory = conversation.conversation_state?.messages_history || [];
+    messagesHistory.push({ role: 'user', content: userMessage });
+
+    // Fetch services and barbers for context
+    const { data: services } = await supabase
+      .from('services')
+      .select('id, name, price, duration_minutes')
+      .eq('barbershop_id', barbershop.id)
+      .eq('is_active', true);
+
+    const { data: barbers } = await supabase
+      .from('barbers')
+      .select('id, name, specialty')
+      .eq('barbershop_id', barbershop.id)
+      .eq('is_active', true);
+
+    // Build AI prompt
+    const systemPrompt = `Você é um assistente de agendamentos para a barbearia "${barbershop.name}".
+
+REGRAS IMPORTANTES:
+1. Seja cordial, profissional e objetivo
+2. Pergunte APENAS um dado por vez
+3. Use emojis moderadamente (1-2 por mensagem)
+4. Sempre confirme todos os dados antes de criar agendamento
+5. Formate datas como DD/MM/YYYY e horários como HH:MM
+
+SERVIÇOS DISPONÍVEIS:
+${services?.map(s => `- ${s.name}: R$ ${s.price} (${s.duration_minutes}min)`).join('\n') || 'Nenhum serviço disponível'}
+
+BARBEIROS DISPONÍVEIS:
+${barbers?.map(b => `- ${b.name}${b.specialty ? ' - ' + b.specialty : ''}`).join('\n') || 'Nenhum barbeiro disponível'}
+
+FLUXO DE AGENDAMENTO:
+1. Cumprimentar e perguntar qual serviço deseja
+2. Perguntar qual barbeiro prefere
+3. Perguntar data preferida (formato: DD/MM/YYYY)
+4. Usar a ferramenta get_available_times para buscar horários
+5. Apresentar horários disponíveis
+6. Confirmar todos os dados
+7. Usar a ferramenta create_appointment para finalizar
+
+COMANDOS ESPECIAIS:
+- Se cliente disser "AJUDA" ou "HELP": Liste os comandos disponíveis
+- Se cliente disser "MEUS AGENDAMENTOS": Use get_client_appointments
+- Se cliente disser "CANCELAR": Pergunte qual agendamento cancelar
+
+Responda de forma natural e humana. Nunca mencione que é uma IA.`;
+
+    // Define tools for AI
+    const tools = [
+      {
+        type: "function",
+        name: "get_available_times",
+        description: "Busca horários disponíveis para uma data, barbeiro e serviço específicos",
+        parameters: {
+          type: "object",
+          properties: {
+            date: { type: "string", description: "Data no formato YYYY-MM-DD" },
+            barber_id: { type: "string", description: "ID do barbeiro" },
+            service_id: { type: "string", description: "ID do serviço" }
+          },
+          required: ["date", "barber_id", "service_id"]
+        }
+      },
+      {
+        type: "function",
+        name: "create_appointment",
+        description: "Cria um agendamento após confirmação do cliente",
+        parameters: {
+          type: "object",
+          properties: {
+            service_id: { type: "string" },
+            barber_id: { type: "string" },
+            appointment_date: { type: "string", description: "Data e hora no formato ISO 8601" }
+          },
+          required: ["service_id", "barber_id", "appointment_date"]
+        }
+      },
+      {
+        type: "function",
+        name: "get_client_appointments",
+        description: "Busca agendamentos futuros do cliente",
+        parameters: {
+          type: "object",
+          properties: {}
+        }
+      }
+    ];
+
+    // Call Lovable AI
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...messagesHistory
+        ],
+        tools,
+        tool_choice: 'auto'
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('[WhatsApp] AI Error:', errorText);
+      throw new Error(`AI request failed: ${errorText}`);
+    }
+
+    const aiData = await aiResponse.json();
+    console.log('[WhatsApp] AI Response:', JSON.stringify(aiData, null, 2));
+
+    let responseMessage = aiData.choices[0].message.content || 'Desculpe, não entendi. Pode repetir?';
+    const toolCalls = aiData.choices[0].message.tool_calls;
+
+    // Execute tool calls if any
+    if (toolCalls && toolCalls.length > 0) {
+      for (const toolCall of toolCalls) {
+        const functionName = toolCall.function.name;
+        const args = JSON.parse(toolCall.function.arguments);
+
+        console.log('[WhatsApp] Executing tool:', functionName, args);
+
+        if (functionName === 'get_available_times') {
+          // Generate available times (simplified version)
+          const selectedDate = new Date(args.date);
+          const times = [];
+          for (let hour = 9; hour <= 18; hour++) {
+            times.push(`${hour.toString().padStart(2, '0')}:00`);
+            if (hour < 18) times.push(`${hour.toString().padStart(2, '0')}:30`);
+          }
+          
+          responseMessage += `\n\n📅 Horários disponíveis para ${selectedDate.toLocaleDateString('pt-BR')}:\n`;
+          times.slice(0, 8).forEach((time, i) => {
+            responseMessage += `${i + 1}. ${time}\n`;
+          });
+          responseMessage += '\nDigite o horário desejado (ex: 14:00)';
+        }
+        
+        else if (functionName === 'create_appointment') {
+          // Find client record
+          const { data: client } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('profile_id', profile.id)
+            .eq('barbershop_id', barbershop.id)
+            .maybeSingle();
+
+          let clientId = client?.id;
+
+          // Create client if doesn't exist
+          if (!clientId) {
+            const { data: newClient } = await supabase
+              .from('clients')
+              .insert({
+                barbershop_id: barbershop.id,
+                profile_id: profile.id,
+                name: profile.full_name,
+                phone: phoneNumber,
+                total_visits: 0
+              })
+              .select()
+              .single();
+            clientId = newClient.id;
+          }
+
+          // Create appointment
+          const { data: appointment, error: aptError } = await supabase
+            .from('appointments')
+            .insert({
+              barbershop_id: barbershop.id,
+              client_id: clientId,
+              barber_id: args.barber_id,
+              service_id: args.service_id,
+              appointment_date: args.appointment_date,
+              status: 'pending'
+            })
+            .select(`
+              *,
+              services(name, price),
+              barbers(name)
+            `)
+            .single();
+
+          if (aptError) {
+            console.error('[WhatsApp] Error creating appointment:', aptError);
+            responseMessage = 'Desculpe, houve um erro ao criar o agendamento. Tente novamente.';
+          } else {
+            console.log('[WhatsApp] Appointment created:', appointment.id);
+            
+            const aptDate = new Date(appointment.appointment_date);
+            responseMessage = `✅ *Agendamento Confirmado!*
+
+📋 Resumo:
+• Serviço: ${appointment.services.name}
+• Barbeiro: ${appointment.barbers.name}
+• Data: ${aptDate.toLocaleDateString('pt-BR')}
+• Horário: ${aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+• Valor: R$ ${appointment.services.price}
+
+📍 Local: ${barbershop.name}
+${barbershop.address || ''}
+
+Enviaremos um lembrete 1 dia antes! 💈
+
+Para ver seus agendamentos, envie: MEUS AGENDAMENTOS
+Para cancelar, envie: CANCELAR`;
+          }
+        }
+        
+        else if (functionName === 'get_client_appointments') {
+          const { data: client } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('profile_id', profile.id)
+            .eq('barbershop_id', barbershop.id)
+            .maybeSingle();
+
+          if (!client) {
+            responseMessage = 'Você ainda não tem agendamentos.';
+          } else {
+            const { data: appointments } = await supabase
+              .from('appointments')
+              .select(`
+                *,
+                services(name, price),
+                barbers(name)
+              `)
+              .eq('client_id', client.id)
+              .gte('appointment_date', new Date().toISOString())
+              .order('appointment_date');
+
+            if (!appointments || appointments.length === 0) {
+              responseMessage = 'Você não tem agendamentos futuros. Quer agendar agora?';
+            } else {
+              responseMessage = '📅 *Seus Agendamentos*\n\n';
+              appointments.forEach((apt, i) => {
+                const aptDate = new Date(apt.appointment_date);
+                responseMessage += `${i + 1}. ${aptDate.toLocaleDateString('pt-BR')} às ${aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}\n`;
+                responseMessage += `   ${apt.services.name} - ${apt.barbers.name}\n`;
+                responseMessage += `   Status: ${apt.status === 'pending' ? '⏳ Pendente' : '✅ Confirmado'}\n\n`;
+              });
+              responseMessage += '\nPara cancelar, envie: CANCELAR [número]';
+            }
+          }
+        }
+      }
+    }
+
+    // Update conversation history
+    messagesHistory.push({ role: 'assistant', content: responseMessage });
+    
+    await supabase
+      .from('whatsapp_conversations')
+      .update({
+        conversation_state: { messages_history: messagesHistory.slice(-20) }, // Keep last 20 messages
+        last_message_at: new Date().toISOString()
+      })
+      .eq('id', conversation.id);
+
+    // Send response via Evolution API
+    const sendResponse = await fetch(
+      `${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(EVOLUTION_INSTANCE_NAME)}`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': EVOLUTION_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          number: phoneNumber,
+          text: responseMessage
+        })
+      }
+    );
+
+    if (!sendResponse.ok) {
+      const errorText = await sendResponse.text();
+      console.error('[WhatsApp] Error sending message:', errorText);
+      throw new Error(`Failed to send WhatsApp message: ${errorText}`);
+    }
+
+    console.log('[WhatsApp] Message sent successfully to:', phoneNumber);
+
+    return new Response(
+      JSON.stringify({ 
+        status: 'success',
+        message: 'Message processed and response sent'
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    );
+
+  } catch (error) {
+    console.error('[WhatsApp] Error:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500
+      }
+    );
+  }
+});

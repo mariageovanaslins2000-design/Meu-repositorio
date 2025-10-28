@@ -1,4 +1,4 @@
-import { Calendar, DollarSign, Users, TrendingUp, Scissors } from "lucide-react";
+import { Calendar, DollarSign, Users, TrendingUp, Scissors, MessageSquare } from "lucide-react";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -198,6 +198,40 @@ const Dashboard = () => {
           <StatCard key={stat.title} {...stat} />
         ))}
       </div>
+
+      {/* WhatsApp Bot Status */}
+      <Card className="shadow-elegant">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-green-600" />
+            WhatsApp Bot
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Status:</span>
+              <Badge className="bg-green-600 hover:bg-green-700">✅ Conectado</Badge>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Instância:</span>
+              <span className="text-sm text-muted-foreground">zylo ia</span>
+            </div>
+            <div className="pt-2 border-t">
+              <p className="text-xs text-muted-foreground">
+                Os clientes podem fazer agendamentos diretamente pelo WhatsApp. 
+                As mensagens são processadas automaticamente com IA.
+              </p>
+            </div>
+            <div className="pt-2">
+              <p className="text-xs font-medium">Webhook URL:</p>
+              <code className="text-xs bg-muted p-2 rounded block mt-1 overflow-x-auto">
+                https://fnahzsjalbjmvvfilmhr.supabase.co/functions/v1/whatsapp-webhook
+              </code>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Appointments */}
       <Card className="shadow-elegant">
