@@ -74,8 +74,22 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
+    console.log('[WhatsApp] Environment check:', {
+      hasZapiBaseUrl: !!ZAPI_BASE_URL,
+      hasZapiInstanceId: !!ZAPI_INSTANCE_ID,
+      hasZapiToken: !!ZAPI_TOKEN,
+      hasZapiClientToken: !!ZAPI_CLIENT_TOKEN,
+      hasLovableKey: !!LOVABLE_API_KEY
+    });
+
     if (!ZAPI_BASE_URL || !ZAPI_INSTANCE_ID || !ZAPI_TOKEN || !ZAPI_CLIENT_TOKEN || !LOVABLE_API_KEY) {
-      throw new Error('Missing required Z-API environment variables');
+      const missing = [];
+      if (!ZAPI_BASE_URL) missing.push('ZAPI_BASE_URL');
+      if (!ZAPI_INSTANCE_ID) missing.push('ZAPI_INSTANCE_ID');
+      if (!ZAPI_TOKEN) missing.push('ZAPI_TOKEN');
+      if (!ZAPI_CLIENT_TOKEN) missing.push('ZAPI_CLIENT_TOKEN');
+      if (!LOVABLE_API_KEY) missing.push('LOVABLE_API_KEY');
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
