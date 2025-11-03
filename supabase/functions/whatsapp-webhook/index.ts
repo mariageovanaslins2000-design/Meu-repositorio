@@ -6,22 +6,58 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface EvolutionMessage {
-  event: string;
-  instance: string;
-  data: {
-    key: {
-      remoteJid: string;
-      fromMe: boolean;
-    };
-    message: {
-      conversation?: string;
-      extendedTextMessage?: {
-        text: string;
-      };
-    };
-    pushName: string;
+interface ZapiWebhook {
+  instanceId: string;
+  messageId: string;
+  phone: string;
+  fromMe: boolean;
+  momment: number;
+  status: string;
+  chatName: string;
+  senderName: string;
+  photo: string;
+  broadcast: boolean;
+  participantPhone?: string;
+  text?: {
+    message: string;
   };
+  image?: { imageUrl: string; caption?: string };
+  audio?: { audioUrl: string };
+  video?: { videoUrl: string; caption?: string };
+  document?: { documentUrl: string; fileName: string };
+}
+
+async function sendZapiMessage(phone: string, message: string) {
+  const ZAPI_BASE_URL = Deno.env.get('ZAPI_BASE_URL');
+  const ZAPI_INSTANCE_ID = Deno.env.get('ZAPI_INSTANCE_ID');
+  const ZAPI_TOKEN = Deno.env.get('ZAPI_TOKEN');
+  const ZAPI_CLIENT_TOKEN = Deno.env.get('ZAPI_CLIENT_TOKEN');
+
+  const url = `${ZAPI_BASE_URL}/instances/${ZAPI_INSTANCE_ID}/token/${ZAPI_TOKEN}/send-text`;
+  
+  console.log('[Z-API] Sending message to:', phone);
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Client-Token': ZAPI_CLIENT_TOKEN!
+    },
+    body: JSON.stringify({
+      phone: phone,
+      message: message
+    })
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('[Z-API] Send error:', errorText);
+    throw new Error(`Z-API send failed: ${errorText}`);
+  }
+  
+  const result = await response.json();
+  console.log('[Z-API] Message sent successfully:', result);
+  return result;
 }
 
 serve(async (req) => {
@@ -30,34 +66,34 @@ serve(async (req) => {
   }
 
   try {
-    const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL');
-    const EVOLUTION_API_KEY = Deno.env.get('EVOLUTION_API_KEY');
-    const EVOLUTION_INSTANCE_NAME = Deno.env.get('EVOLUTION_INSTANCE_NAME');
+    const ZAPI_BASE_URL = Deno.env.get('ZAPI_BASE_URL');
+    const ZAPI_INSTANCE_ID = Deno.env.get('ZAPI_INSTANCE_ID');
+    const ZAPI_TOKEN = Deno.env.get('ZAPI_TOKEN');
+    const ZAPI_CLIENT_TOKEN = Deno.env.get('ZAPI_CLIENT_TOKEN');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !EVOLUTION_INSTANCE_NAME || !LOVABLE_API_KEY) {
-      throw new Error('Missing required environment variables');
+    if (!ZAPI_BASE_URL || !ZAPI_INSTANCE_ID || !ZAPI_TOKEN || !ZAPI_CLIENT_TOKEN || !LOVABLE_API_KEY) {
+      throw new Error('Missing required Z-API environment variables');
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-    const payload: EvolutionMessage = await req.json();
+    const zapiPayload: ZapiWebhook = await req.json();
 
-    console.log('[WhatsApp] Received webhook:', JSON.stringify(payload, null, 2));
+    console.log('[WhatsApp] Received Z-API webhook:', JSON.stringify(zapiPayload, null, 2));
 
     // Ignore messages from the bot itself
-    if (payload.data.key.fromMe) {
+    if (zapiPayload.fromMe) {
       return new Response(JSON.stringify({ status: 'ignored', reason: 'message from bot' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     // Extract phone number and message
-    const phoneNumber = payload.data.key.remoteJid.replace('@s.whatsapp.net', '');
-    const userMessage = payload.data.message.conversation || 
-                       payload.data.message.extendedTextMessage?.text || '';
-    const pushName = payload.data.pushName || 'Cliente';
+    const phoneNumber = zapiPayload.phone.replace(/\D/g, '');
+    const userMessage = zapiPayload.text?.message || '';
+    const pushName = zapiPayload.senderName || zapiPayload.chatName || 'Cliente';
 
     console.log('[WhatsApp] Processing message from:', phoneNumber, '- Message:', userMessage);
 
@@ -379,27 +415,8 @@ Para cancelar, envie: CANCELAR`;
       })
       .eq('id', conversation.id);
 
-    // Send response via Evolution API
-    const sendResponse = await fetch(
-      `${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(EVOLUTION_INSTANCE_NAME)}`,
-      {
-        method: 'POST',
-        headers: {
-          'apikey': EVOLUTION_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          number: phoneNumber,
-          text: responseMessage
-        })
-      }
-    );
-
-    if (!sendResponse.ok) {
-      const errorText = await sendResponse.text();
-      console.error('[WhatsApp] Error sending message:', errorText);
-      throw new Error(`Failed to send WhatsApp message: ${errorText}`);
-    }
+    // Send response via Z-API
+    await sendZapiMessage(phoneNumber, responseMessage);
 
     console.log('[WhatsApp] Message sent successfully to:', phoneNumber);
 

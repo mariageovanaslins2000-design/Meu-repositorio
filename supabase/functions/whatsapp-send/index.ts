@@ -16,12 +16,13 @@ serve(async (req) => {
   }
 
   try {
-    const EVOLUTION_API_URL = Deno.env.get('EVOLUTION_API_URL');
-    const EVOLUTION_API_KEY = Deno.env.get('EVOLUTION_API_KEY');
-    const EVOLUTION_INSTANCE_NAME = Deno.env.get('EVOLUTION_INSTANCE_NAME');
+    const ZAPI_BASE_URL = Deno.env.get('ZAPI_BASE_URL');
+    const ZAPI_INSTANCE_ID = Deno.env.get('ZAPI_INSTANCE_ID');
+    const ZAPI_TOKEN = Deno.env.get('ZAPI_TOKEN');
+    const ZAPI_CLIENT_TOKEN = Deno.env.get('ZAPI_CLIENT_TOKEN');
 
-    if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY || !EVOLUTION_INSTANCE_NAME) {
-      throw new Error('Missing required environment variables');
+    if (!ZAPI_BASE_URL || !ZAPI_INSTANCE_ID || !ZAPI_TOKEN || !ZAPI_CLIENT_TOKEN) {
+      throw new Error('Missing required Z-API environment variables');
     }
 
     const { phoneNumber, message }: SendMessageRequest = await req.json();
@@ -33,23 +34,23 @@ serve(async (req) => {
     console.log('[WhatsApp Send] Sending message to:', phoneNumber);
 
     const response = await fetch(
-      `${EVOLUTION_API_URL}/message/sendText/${encodeURIComponent(EVOLUTION_INSTANCE_NAME)}`,
+      `${ZAPI_BASE_URL}/instances/${ZAPI_INSTANCE_ID}/token/${ZAPI_TOKEN}/send-text`,
       {
         method: 'POST',
         headers: {
-          'apikey': EVOLUTION_API_KEY,
           'Content-Type': 'application/json',
+          'Client-Token': ZAPI_CLIENT_TOKEN
         },
         body: JSON.stringify({
-          number: phoneNumber,
-          text: message
+          phone: phoneNumber,
+          message: message
         })
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[WhatsApp Send] Evolution API error:', errorText);
+      console.error('[WhatsApp Send] Z-API error:', errorText);
       throw new Error(`Failed to send message: ${errorText}`);
     }
 
