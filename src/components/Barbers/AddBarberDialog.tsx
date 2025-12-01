@@ -32,7 +32,6 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
     specialty: "",
     phone: "",
     commission_percent: "50",
-    google_calendar_id: "",
   });
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +88,6 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
         phone: formData.phone || null,
         photo_url: photoUrl || null,
         commission_percent: parseFloat(formData.commission_percent),
-        google_calendar_id: formData.google_calendar_id || null,
         is_active: true,
       });
 
@@ -101,7 +99,6 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
         specialty: "",
         phone: "",
         commission_percent: "50",
-        google_calendar_id: "",
       });
       setPhotoUrl("");
       setOpen(false);
@@ -198,19 +195,6 @@ export function AddBarberDialog({ onBarberAdded }: AddBarberDialogProps) {
               value={formData.commission_percent}
               onChange={(e) => setFormData({ ...formData, commission_percent: e.target.value })}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="calendar_id">ID do Google Calendar (Opcional)</Label>
-            <Input
-              id="calendar_id"
-              placeholder="barbeiro@group.calendar.google.com"
-              value={formData.google_calendar_id}
-              onChange={(e) => setFormData({ ...formData, google_calendar_id: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground">
-              Necessário para integração com Google Agenda
-            </p>
           </div>
 
           <div className="flex gap-3 pt-4">
