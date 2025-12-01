@@ -60,77 +60,92 @@ const Appointments = () => {
       // Load barbers
       const { data: barbersData } = await supabase
         .from("barbers")
-        .select("id, name")
+        .select("id, name, google_calendar_id")
         .eq("barbershop_id", barbershop.id)
         .eq("is_active", true);
 
       setBarbers(barbersData || []);
 
-      // Load appointments - use period filter if set, otherwise use single date
-      let query = supabase
-        .from("appointments")
-        .select(`
-          id,
-          appointment_date,
-          status,
-          client_id,
-          barber_id,
-          service_id
-        `)
-        .eq("barbershop_id", barbershop.id);
-
+      // Determine date range
+      let timeMin: string, timeMax: string;
+      
       if (startDate && endDate) {
-        // Period filter mode
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        query = query
-          .gte("appointment_date", start.toISOString())
-          .lte("appointment_date", end.toISOString());
+        timeMin = start.toISOString();
+        timeMax = end.toISOString();
       } else if (date) {
-        // Single day filter mode
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
-        query = query
-          .gte("appointment_date", startOfDay.toISOString())
-          .lte("appointment_date", endOfDay.toISOString());
-      }
-
-      const { data: appointmentsData } = await query.order("appointment_date", { ascending: true });
-
-      // Fetch related data separately
-      if (appointmentsData && appointmentsData.length > 0) {
-        const barberIds = [...new Set(appointmentsData.map(a => a.barber_id))];
-        const clientIds = [...new Set(appointmentsData.map(a => a.client_id))];
-        const serviceIds = [...new Set(appointmentsData.map(a => a.service_id))];
-
-        const [{ data: barbersData }, { data: clientsData }, { data: servicesData }] = await Promise.all([
-          supabase.from("barbers").select("id, name").in("id", barberIds),
-          supabase.from("profiles").select("id, full_name").in("id", clientIds),
-          supabase.from("services").select("id, name, duration_minutes, price").in("id", serviceIds),
-        ]);
-
-        const formattedAppointments = appointmentsData.map(apt => ({
-          id: apt.id,
-          appointment_date: apt.appointment_date,
-          status: apt.status,
-          barber: {
-            id: apt.barber_id,
-            name: barbersData?.find(b => b.id === apt.barber_id)?.name || "N/A"
-          },
-          client: {
-            full_name: clientsData?.find(c => c.id === apt.client_id)?.full_name || "N/A"
-          },
-          service: servicesData?.find(s => s.id === apt.service_id) || { name: "N/A", duration_minutes: 0, price: 0 }
-        }));
-
-        setAppointments(formattedAppointments);
+        timeMin = startOfDay.toISOString();
+        timeMax = endOfDay.toISOString();
       } else {
         setAppointments([]);
+        return;
       }
+
+      // Fetch events from all barbers' Google Calendars
+      const allAppointments: Appointment[] = [];
+      
+      for (const barber of (barbersData || [])) {
+        if (!barber.google_calendar_id) continue;
+
+        const { data: gcData, error: gcError } = await supabase.functions.invoke('google-calendar', {
+          body: {
+            action: 'listEvents',
+            calendarId: barber.google_calendar_id,
+            timeMin,
+            timeMax
+          }
+        });
+
+        if (gcError) {
+          console.error(`Error loading events for barber ${barber.name}:`, gcError);
+          continue;
+        }
+
+        // Parse Google Calendar events
+        const events = gcData?.items || [];
+        events.forEach((event: any) => {
+          if (!event.start?.dateTime) return;
+
+          // Extract service and price from description
+          const description = event.description || '';
+          const serviceName = description.match(/Serviço: (.+)/)?.[1] || 'Serviço';
+          const priceMatch = description.match(/Valor: R\$ ([\d.,]+)/);
+          const price = priceMatch ? parseFloat(priceMatch[1].replace(',', '.')) : 0;
+          const clientName = event.summary?.split(' - ')[1] || description.match(/Cliente: (.+)/)?.[1] || 'Cliente';
+          
+          allAppointments.push({
+            id: event.id,
+            appointment_date: event.start.dateTime,
+            status: 'confirmed',
+            barber: {
+              id: barber.id,
+              name: barber.name
+            },
+            client: {
+              full_name: clientName
+            },
+            service: {
+              name: serviceName,
+              duration_minutes: Math.round((new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000),
+              price
+            }
+          });
+        });
+      }
+
+      // Sort by date
+      allAppointments.sort((a, b) => 
+        new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
+      );
+
+      setAppointments(allAppointments);
     } catch (error) {
       console.error("Error loading data:", error);
       toast({
@@ -143,166 +158,8 @@ const Appointments = () => {
     }
   };
 
-  const updateStatus = async (appointmentId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from("appointments")
-        .update({ status: newStatus })
-        .eq("id", appointmentId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Status atualizado",
-        description: "O status do agendamento foi atualizado com sucesso",
-      });
-
-      loadData();
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível atualizar o status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const confirmAppointment = async (appointmentId: string, servicePrice: number) => {
-    try {
-      // Get barbershop
-      const { data: barbershop } = await supabase
-        .from("barbershops")
-        .select("id")
-        .eq("owner_id", user!.id)
-        .single();
-
-      if (!barbershop) throw new Error("Barbearia não encontrada");
-
-      // Get appointment details
-      const { data: appointment } = await supabase
-        .from("appointments")
-        .select(`
-          id,
-          client_id,
-          barber_id,
-          service_id,
-          appointment_date
-        `)
-        .eq("id", appointmentId)
-        .single();
-
-      if (!appointment) throw new Error("Agendamento não encontrado");
-
-      // Get client profile info
-      const { data: clientProfile } = await supabase
-        .from("profiles")
-        .select("full_name, phone")
-        .eq("id", appointment.client_id)
-        .single();
-
-      // Get barber commission
-      const { data: barber } = await supabase
-        .from("barbers")
-        .select("commission_percent")
-        .eq("id", appointment.barber_id)
-        .single();
-
-      if (!barber) throw new Error("Barbeiro não encontrado");
-
-      // Check if client exists in clients table
-      let clientRecord = await supabase
-        .from("clients")
-        .select("*")
-        .eq("barbershop_id", barbershop.id)
-        .eq("profile_id", appointment.client_id)
-        .maybeSingle();
-
-      if (!clientRecord.data) {
-        // Create new client record
-        const { error: clientError } = await supabase
-          .from("clients")
-          .insert({
-            barbershop_id: barbershop.id,
-            profile_id: appointment.client_id,
-            name: clientProfile?.full_name || "Cliente",
-            phone: clientProfile?.phone,
-            total_visits: 1,
-            last_appointment_at: appointment.appointment_date,
-          });
-
-        if (clientError) throw clientError;
-      } else {
-        // Update existing client record
-        const { error: updateError } = await supabase
-          .from("clients")
-          .update({
-            total_visits: (clientRecord.data.total_visits || 0) + 1,
-            last_appointment_at: appointment.appointment_date,
-          })
-          .eq("id", clientRecord.data.id);
-
-        if (updateError) throw updateError;
-      }
-
-      // Calculate commission
-      const commissionPercent = Number(barber.commission_percent) || 0;
-      const commissionValue = (servicePrice * commissionPercent) / 100;
-      const barbershopProfit = servicePrice - commissionValue;
-
-      // Create financial record
-      const { error: financialError } = await supabase
-        .from("financial_records")
-        .insert({
-          barbershop_id: barbershop.id,
-          appointment_id: appointment.id,
-          barber_id: appointment.barber_id,
-          valor_total: servicePrice,
-          comissao_percent: commissionPercent,
-          comissao_valor: commissionValue,
-          valor_liquido_barbearia: barbershopProfit,
-          status: "EFETIVADO",
-        });
-
-      if (financialError) throw financialError;
-
-      // Update appointment status
-      const { error: appointmentError } = await supabase
-        .from("appointments")
-        .update({ 
-          status: "completed",
-          paid_amount: servicePrice 
-        })
-        .eq("id", appointmentId);
-
-      if (appointmentError) throw appointmentError;
-
-      toast({
-        title: "Agendamento confirmado!",
-        description: "Cliente adicionado, valor registrado no financeiro",
-      });
-
-      loadData();
-    } catch (error) {
-      console.error("Error confirming appointment:", error);
-      toast({
-        title: "Erro",
-        description: error instanceof Error ? error.message : "Não foi possível confirmar",
-        variant: "destructive",
-      });
-    }
-  };
-
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = {
-      pending: { variant: "secondary", label: "Pendente" },
-      confirmed: { variant: "default", label: "Confirmado" },
-      completed: { variant: "outline", label: "Concluído" },
-      cancelled: { variant: "destructive", label: "Cancelado" },
-    };
-    
-    const config = variants[status] || variants.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
+    return <Badge variant="default">Confirmado</Badge>;
   };
 
   const filteredAppointments = selectedBarber === "all" 
@@ -478,33 +335,8 @@ const Appointments = () => {
                         <p className="text-xs text-muted-foreground">Barbeiro</p>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row gap-2">
+                      <div>
                         {getStatusBadge(appointment.status)}
-                        
-                        {appointment.status !== "completed" && appointment.status !== "cancelled" && (
-                          <Button
-                            size="sm"
-                            onClick={() => confirmAppointment(appointment.id, appointment.service.price)}
-                            className="whitespace-nowrap"
-                          >
-                            Confirmar
-                          </Button>
-                        )}
-                        
-                        <Select 
-                          value={appointment.status} 
-                          onValueChange={(value) => updateStatus(appointment.id, value)}
-                        >
-                          <SelectTrigger className="w-[140px] h-8">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pending">Pendente</SelectItem>
-                            <SelectItem value="confirmed">Confirmado</SelectItem>
-                            <SelectItem value="completed">Concluído</SelectItem>
-                            <SelectItem value="cancelled">Cancelado</SelectItem>
-                          </SelectContent>
-                        </Select>
                       </div>
                     </div>
                   </div>
