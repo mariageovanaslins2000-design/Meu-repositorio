@@ -179,13 +179,28 @@ export default function ClientBooking() {
     setLoading(true);
 
     try {
+      // Buscar o client_id correto da tabela clients
+      const { data: clientData, error: clientError } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("profile_id", user.id)
+        .eq("barbershop_id", barbershop.id)
+        .maybeSingle();
+
+      if (clientError) throw clientError;
+
+      if (!clientData) {
+        toast.error("Você não está cadastrado como cliente nesta barbearia");
+        return;
+      }
+
       const [hours, minutes] = selectedTime.split(':');
       const appointmentDateTime = setHours(setMinutes(selectedDate, parseInt(minutes)), parseInt(hours));
 
       const { error } = await supabase.from("appointments").insert({
         barbershop_id: barbershop.id,
         barber_id: selectedBarber.id,
-        client_id: user.id,
+        client_id: clientData.id,
         service_id: selectedService.id,
         appointment_date: appointmentDateTime.toISOString(),
         notes,
