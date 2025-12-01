@@ -187,6 +187,8 @@ serve(async (req) => {
       case 'createAppointment': {
         const { barber_id, service_id, date, time, client_name, client_phone } = body;
         
+        console.log('Dados recebidos:', { barber_id, service_id, date, time, client_name, client_phone });
+        
         if (!barber_id || !service_id || !date || !time || !client_name || !client_phone) {
           throw new Error('barber_id, service_id, date, time, client_name e client_phone são obrigatórios');
         }
@@ -225,11 +227,16 @@ serve(async (req) => {
           .eq('phone', client_phone)
           .maybeSingle();
 
-        if (clientSearchError) throw clientSearchError;
+        if (clientSearchError) {
+          console.error('Erro ao buscar cliente:', clientSearchError);
+          throw clientSearchError;
+        }
 
         if (existingClient) {
+          console.log('Cliente existente encontrado:', existingClient.id);
           client_id = existingClient.id;
         } else {
+          console.log('Criando novo cliente...');
           // Criar novo cliente
           const { data: newClient, error: clientCreateError } = await supabase
             .from('clients')
@@ -237,11 +244,16 @@ serve(async (req) => {
               barbershop_id,
               name: client_name,
               phone: client_phone,
+              total_visits: 0
             })
             .select('id')
             .single();
 
-          if (clientCreateError) throw clientCreateError;
+          if (clientCreateError) {
+            console.error('Erro ao criar cliente:', clientCreateError);
+            throw clientCreateError;
+          }
+          console.log('Cliente criado:', newClient.id);
           client_id = newClient.id;
         }
 
@@ -285,6 +297,7 @@ serve(async (req) => {
         }
 
         // Criar agendamento
+        console.log('Criando agendamento com client_id:', client_id);
         const { data: appointment, error: appointmentError } = await supabase
           .from('appointments')
           .insert({
@@ -298,7 +311,10 @@ serve(async (req) => {
           .select('*')
           .single();
 
-        if (appointmentError) throw appointmentError;
+        if (appointmentError) {
+          console.error('Erro ao criar agendamento:', appointmentError);
+          throw appointmentError;
+        }
 
         console.log('Agendamento criado:', appointment);
 
