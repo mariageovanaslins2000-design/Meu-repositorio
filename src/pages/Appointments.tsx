@@ -60,92 +60,72 @@ const Appointments = () => {
       // Load barbers
       const { data: barbersData } = await supabase
         .from("barbers")
-        .select("id, name, google_calendar_id")
+        .select("id, name")
         .eq("barbershop_id", barbershop.id)
         .eq("is_active", true);
 
       setBarbers(barbersData || []);
 
       // Determine date range
-      let timeMin: string, timeMax: string;
+      let startTime: string, endTime: string;
       
       if (startDate && endDate) {
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
-        timeMin = start.toISOString();
-        timeMax = end.toISOString();
+        startTime = start.toISOString();
+        endTime = end.toISOString();
       } else if (date) {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
-        timeMin = startOfDay.toISOString();
-        timeMax = endOfDay.toISOString();
+        startTime = startOfDay.toISOString();
+        endTime = endOfDay.toISOString();
       } else {
         setAppointments([]);
         return;
       }
 
-      // Fetch events from all barbers' Google Calendars
-      const allAppointments: Appointment[] = [];
-      
-      for (const barber of (barbersData || [])) {
-        if (!barber.google_calendar_id) continue;
+      // Fetch appointments from database
+      const { data: appointmentsData, error } = await supabase
+        .from("appointments")
+        .select(`
+          id,
+          appointment_date,
+          status,
+          barbers (id, name),
+          clients (id, name),
+          services (name, duration_minutes, price)
+        `)
+        .eq("barbershop_id", barbershop.id)
+        .gte("appointment_date", startTime)
+        .lte("appointment_date", endTime)
+        .order("appointment_date", { ascending: true });
 
-        const { data: gcData, error: gcError } = await supabase.functions.invoke('google-calendar', {
-          body: {
-            action: 'listEvents',
-            calendarId: barber.google_calendar_id,
-            timeMin,
-            timeMax
-          }
-        });
+      if (error) throw error;
 
-        if (gcError) {
-          console.error(`Error loading events for barber ${barber.name}:`, gcError);
-          continue;
+      // Map to expected format
+      const mappedAppointments: Appointment[] = (appointmentsData || []).map((apt: any) => ({
+        id: apt.id,
+        appointment_date: apt.appointment_date,
+        status: apt.status,
+        barber: {
+          id: apt.barbers.id,
+          name: apt.barbers.name
+        },
+        client: {
+          full_name: apt.clients.name
+        },
+        service: {
+          name: apt.services.name,
+          duration_minutes: apt.services.duration_minutes,
+          price: apt.services.price
         }
+      }));
 
-        // Parse Google Calendar events
-        const events = gcData?.items || [];
-        events.forEach((event: any) => {
-          if (!event.start?.dateTime) return;
-
-          // Extract service and price from description
-          const description = event.description || '';
-          const serviceName = description.match(/Serviço: (.+)/)?.[1] || 'Serviço';
-          const priceMatch = description.match(/Valor: R\$ ([\d.,]+)/);
-          const price = priceMatch ? parseFloat(priceMatch[1].replace(',', '.')) : 0;
-          const clientName = event.summary?.split(' - ')[1] || description.match(/Cliente: (.+)/)?.[1] || 'Cliente';
-          
-          allAppointments.push({
-            id: event.id,
-            appointment_date: event.start.dateTime,
-            status: 'confirmed',
-            barber: {
-              id: barber.id,
-              name: barber.name
-            },
-            client: {
-              full_name: clientName
-            },
-            service: {
-              name: serviceName,
-              duration_minutes: Math.round((new Date(event.end.dateTime).getTime() - new Date(event.start.dateTime).getTime()) / 60000),
-              price
-            }
-          });
-        });
-      }
-
-      // Sort by date
-      allAppointments.sort((a, b) => 
-        new Date(a.appointment_date).getTime() - new Date(b.appointment_date).getTime()
-      );
-
-      setAppointments(allAppointments);
+      setAppointments(mappedAppointments);
     } catch (error) {
       console.error("Error loading data:", error);
       toast({
@@ -159,7 +139,15 @@ const Appointments = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    return <Badge variant="default">Confirmado</Badge>;
+    const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
+      pending: { label: "Pendente", variant: "secondary" },
+      confirmed: { label: "Confirmado", variant: "default" },
+      completed: { label: "Concluído", variant: "default" },
+      cancelled: { label: "Cancelado", variant: "destructive" }
+    };
+    
+    const statusInfo = statusMap[status] || statusMap.pending;
+    return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
   const filteredAppointments = selectedBarber === "all" 
