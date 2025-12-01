@@ -28,7 +28,10 @@ async function getGoogleAccessToken(): Promise<string> {
     throw new Error('Missing Google Service Account credentials');
   }
 
-  const formattedPrivateKey = privateKey.replace(/\\n/g, '\n');
+  // Handle both escaped newlines (\n) and actual newlines
+  let formattedPrivateKey = privateKey.includes('\\n') 
+    ? privateKey.replace(/\\n/g, '\n')
+    : privateKey;
   
   const now = Math.floor(Date.now() / 1000);
   const expiry = now + 3600;
