@@ -293,86 +293,98 @@ Responda de forma natural e humana. Nunca mencione que é uma IA.`;
         console.log('[WhatsApp] Executing tool:', functionName, args);
 
         if (functionName === 'get_available_times') {
-          // Generate available times (simplified version)
-          const selectedDate = new Date(args.date);
-          const times = [];
-          for (let hour = 9; hour <= 18; hour++) {
-            times.push(`${hour.toString().padStart(2, '0')}:00`);
-            if (hour < 18) times.push(`${hour.toString().padStart(2, '0')}:30`);
-          }
-          
-          responseMessage += `\n\n📅 Horários disponíveis para ${selectedDate.toLocaleDateString('pt-BR')}:\n`;
-          times.slice(0, 8).forEach((time, i) => {
-            responseMessage += `${i + 1}. ${time}\n`;
+          // Get service duration
+          const { data: service } = await supabase
+            .from('services')
+            .select('duration_minutes')
+            .eq('id', args.service_id)
+            .single();
+
+          // Call Google Calendar function to get available times
+          const { data: availableData, error: gcError } = await supabase.functions.invoke('google-calendar', {
+            body: {
+              action: 'getAvailableTimes',
+              barberId: args.barber_id,
+              date: args.date,
+              serviceDuration: service?.duration_minutes || 60
+            }
           });
-          responseMessage += '\nDigite o horário desejado (ex: 14:00)';
+
+          if (gcError) {
+            console.error('[WhatsApp] Google Calendar error:', gcError);
+            responseMessage = 'Desculpe, houve um erro ao buscar horários. Tente novamente.';
+          } else {
+            const times = availableData.availableTimes || [];
+            const selectedDate = new Date(args.date);
+            
+            if (times.length === 0) {
+              responseMessage = `Desculpe, não há horários disponíveis para ${selectedDate.toLocaleDateString('pt-BR')}. Tente outra data.`;
+            } else {
+              responseMessage += `\n\n📅 Horários disponíveis para ${selectedDate.toLocaleDateString('pt-BR')}:\n`;
+              times.slice(0, 10).forEach((time: string, i: number) => {
+                responseMessage += `${i + 1}. ${time}\n`;
+              });
+              responseMessage += '\nDigite o horário desejado (ex: 14:00)';
+            }
+          }
         }
         
         else if (functionName === 'create_appointment') {
-          // Find client record
-          const { data: client } = await supabase
-            .from('clients')
-            .select('id')
-            .eq('profile_id', profile.id)
-            .eq('barbershop_id', barbershop.id)
-            .maybeSingle();
+          // Get service and barber details
+          const [{ data: service }, { data: barber }] = await Promise.all([
+            supabase.from('services').select('name, price, duration_minutes').eq('id', args.service_id).single(),
+            supabase.from('barbers').select('name, google_calendar_id').eq('id', args.barber_id).single()
+          ]);
 
-          let clientId = client?.id;
-
-          // Create client if doesn't exist
-          if (!clientId) {
-            const { data: newClient } = await supabase
-              .from('clients')
-              .insert({
-                barbershop_id: barbershop.id,
-                profile_id: profile.id,
-                name: profile.full_name,
-                phone: phoneNumber,
-                total_visits: 0
-              })
-              .select()
-              .single();
-            clientId = newClient.id;
+          if (!barber?.google_calendar_id) {
+            responseMessage = 'Desculpe, este barbeiro não tem agenda configurada. Entre em contato com a barbearia.';
+            continue;
           }
 
-          // Create appointment
-          const { data: appointment, error: aptError } = await supabase
-            .from('appointments')
-            .insert({
-              barbershop_id: barbershop.id,
-              client_id: clientId,
-              barber_id: args.barber_id,
-              service_id: args.service_id,
-              appointment_date: args.appointment_date,
-              status: 'pending'
-            })
-            .select(`
-              *,
-              services(name, price),
-              barbers(name)
-            `)
-            .single();
+          // Create event in Google Calendar
+          const appointmentDate = new Date(args.appointment_date);
+          const endDate = new Date(appointmentDate);
+          endDate.setMinutes(endDate.getMinutes() + (service?.duration_minutes || 60));
 
-          if (aptError) {
-            console.error('[WhatsApp] Error creating appointment:', aptError);
+          const { data: gcEvent, error: gcError } = await supabase.functions.invoke('google-calendar', {
+            body: {
+              action: 'createEvent',
+              calendarId: barber.google_calendar_id,
+              event: {
+                summary: `${service?.name} - ${profile.full_name}`,
+                description: `Cliente: ${profile.full_name}\nTelefone: ${phoneNumber}\nServiço: ${service?.name}\nValor: R$ ${service?.price}`,
+                start: {
+                  dateTime: appointmentDate.toISOString(),
+                  timeZone: 'America/Sao_Paulo'
+                },
+                end: {
+                  dateTime: endDate.toISOString(),
+                  timeZone: 'America/Sao_Paulo'
+                }
+              }
+            }
+          });
+
+          if (gcError) {
+            console.error('[WhatsApp] Google Calendar error:', gcError);
             responseMessage = 'Desculpe, houve um erro ao criar o agendamento. Tente novamente.';
           } else {
-            console.log('[WhatsApp] Appointment created:', appointment.id);
+            console.log('[WhatsApp] Google Calendar event created:', gcEvent.id);
             
-            const aptDate = new Date(appointment.appointment_date);
+            const aptDate = new Date(args.appointment_date);
             responseMessage = `✅ *Agendamento Confirmado!*
 
 📋 Resumo:
-• Serviço: ${appointment.services.name}
-• Barbeiro: ${appointment.barbers.name}
+• Serviço: ${service?.name}
+• Barbeiro: ${barber?.name}
 • Data: ${aptDate.toLocaleDateString('pt-BR')}
 • Horário: ${aptDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-• Valor: R$ ${appointment.services.price}
+• Valor: R$ ${service?.price}
 
 📍 Local: ${barbershop.name}
 ${barbershop.address || ''}
 
-Enviaremos um lembrete 1 dia antes! 💈
+Seu agendamento foi adicionado à agenda! 💈
 
 Para ver seus agendamentos, envie: MEUS AGENDAMENTOS
 Para cancelar, envie: CANCELAR`;

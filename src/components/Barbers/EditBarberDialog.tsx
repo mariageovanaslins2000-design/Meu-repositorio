@@ -32,6 +32,7 @@ export function EditBarberDialog({ barber, onBarberUpdated }: EditBarberDialogPr
     specialty: barber.specialty || "",
     phone: barber.phone || "",
     commission_percent: barber.commission_percent,
+    google_calendar_id: barber.google_calendar_id || "",
   });
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -191,6 +192,19 @@ export function EditBarberDialog({ barber, onBarberUpdated }: EditBarberDialogPr
               max="100"
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="calendar_id">ID do Google Calendar (Opcional)</Label>
+            <Input
+              id="calendar_id"
+              placeholder="barbeiro@group.calendar.google.com"
+              value={formData.google_calendar_id}
+              onChange={(e) => setFormData({ ...formData, google_calendar_id: e.target.value })}
+            />
+            <p className="text-xs text-muted-foreground">
+              Necessário para integração com Google Agenda
+            </p>
           </div>
 
           <div className="flex gap-2 justify-end">

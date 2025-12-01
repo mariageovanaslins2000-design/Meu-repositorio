@@ -83,6 +83,7 @@ export type Database = {
           barbershop_id: string
           commission_percent: number | null
           created_at: string
+          google_calendar_id: string | null
           id: string
           is_active: boolean
           name: string
@@ -95,6 +96,7 @@ export type Database = {
           barbershop_id: string
           commission_percent?: number | null
           created_at?: string
+          google_calendar_id?: string | null
           id?: string
           is_active?: boolean
           name: string
@@ -107,6 +109,7 @@ export type Database = {
           barbershop_id?: string
           commission_percent?: number | null
           created_at?: string
+          google_calendar_id?: string | null
           id?: string
           is_active?: boolean
           name?: string
