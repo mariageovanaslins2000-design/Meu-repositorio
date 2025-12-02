@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,10 @@ const signInSchema = z.object({
 
 export default function ClientLogin() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [barbershopLogo, setBarbershopLogo] = useState<string | null>(null);
+  const [barbershopName, setBarbershopName] = useState<string>("");
 
   const [signInData, setSignInData] = useState({
     email: "",
@@ -24,6 +27,32 @@ export default function ClientLogin() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    const barbershopId = searchParams.get("idBarbearia");
+    if (barbershopId) {
+      loadBarbershopInfo(barbershopId);
+    }
+  }, [searchParams]);
+
+  const loadBarbershopInfo = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("barbershops")
+        .select("name, logo_url")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      
+      if (data) {
+        setBarbershopName(data.name);
+        setBarbershopLogo(data.logo_url);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar barbearia:", error);
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,12 +111,22 @@ export default function ClientLogin() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <Scissors className="h-8 w-8 text-primary-foreground" />
-            </div>
+            {barbershopLogo ? (
+              <img 
+                src={barbershopLogo} 
+                alt={barbershopName} 
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="p-3 bg-primary rounded-full">
+                <Scissors className="h-8 w-8 text-primary-foreground" />
+              </div>
+            )}
           </div>
           <CardTitle className="text-2xl">Login de Cliente</CardTitle>
-          <CardDescription>Acesse sua conta para agendar horários</CardDescription>
+          <CardDescription>
+            {barbershopName ? `Acesse sua conta em ${barbershopName}` : "Acesse sua conta para agendar horários"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignIn} className="space-y-4">

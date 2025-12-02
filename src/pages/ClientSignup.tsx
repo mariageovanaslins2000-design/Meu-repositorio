@@ -27,8 +27,9 @@ export default function ClientSignup() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [barbershopId, setBarbershopId] = useState<string | null>(null);
+const [barbershopId, setBarbershopId] = useState<string | null>(null);
   const [barbershopName, setBarbershopName] = useState<string>("");
+  const [barbershopLogo, setBarbershopLogo] = useState<string | null>(null);
 
   const [signUpData, setSignUpData] = useState({
     email: "",
@@ -63,11 +64,11 @@ export default function ClientSignup() {
     loadBarbershopInfo(id);
   }, [searchParams, navigate]);
 
-  const loadBarbershopInfo = async (id: string) => {
+const loadBarbershopInfo = async (id: string) => {
     try {
       const { data, error } = await supabase
         .from("barbershops")
-        .select("name")
+        .select("name, logo_url")
         .eq("id", id)
         .maybeSingle();
 
@@ -80,6 +81,7 @@ export default function ClientSignup() {
       }
       
       setBarbershopName(data.name);
+      setBarbershopLogo(data.logo_url);
     } catch (error) {
       console.error("Erro ao carregar barbearia:", error);
       toast.error("Erro ao carregar informações da barbearia. Tente novamente.");
@@ -150,9 +152,17 @@ export default function ClientSignup() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <Scissors className="h-8 w-8 text-primary-foreground" />
-            </div>
+            {barbershopLogo ? (
+              <img 
+                src={barbershopLogo} 
+                alt={barbershopName} 
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="p-3 bg-primary rounded-full">
+                <Scissors className="h-8 w-8 text-primary-foreground" />
+              </div>
+            )}
           </div>
           <CardTitle className="text-2xl">Cadastro de Cliente</CardTitle>
           <CardDescription>
@@ -222,7 +232,7 @@ export default function ClientSignup() {
                 type="button"
                 variant="link"
                 className="p-0 h-auto"
-                onClick={() => navigate("/login-cliente")}
+                onClick={() => navigate(`/login-cliente?idBarbearia=${barbershopId}`)}
               >
                 Fazer login
               </Button>
