@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientBarbershop } from "@/hooks/useClientBarbershop";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, User, Store } from "lucide-react";
@@ -11,35 +12,39 @@ import { ptBR } from "date-fns/locale";
 export default function ClientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { barbershopId, loading: barbershopLoading } = useClientBarbershop();
   const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasBarbershop, setHasBarbershop] = useState(true);
 
   useEffect(() => {
-    checkBarbershopLink();
-    loadUpcomingAppointments();
-  }, [user]);
-
-  const checkBarbershopLink = async () => {
-    if (!user) return;
-
-    try {
-      const { data } = await supabase
-        .from("client_barbershop")
-        .select("barbershop_id")
-        .eq("profile_id", user.id)
-        .maybeSingle();
-
-      setHasBarbershop(!!data);
-    } catch (error) {
-      console.error("Error checking barbershop link:", error);
+    if (!barbershopLoading && barbershopId) {
+      loadUpcomingAppointments();
+    } else if (!barbershopLoading) {
+      setLoading(false);
     }
-  };
+  }, [user, barbershopId, barbershopLoading]);
 
   const loadUpcomingAppointments = async () => {
-    if (!user) return;
+    if (!user || !barbershopId) return;
 
     try {
+      // First get the client record for this user
+      const { data: clientData, error: clientError } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("profile_id", user.id)
+        .eq("barbershop_id", barbershopId)
+        .maybeSingle();
+
+      if (clientError) throw clientError;
+
+      if (!clientData) {
+        setUpcomingAppointments([]);
+        setLoading(false);
+        return;
+      }
+
+      // Now fetch appointments using the correct client.id
       const { data, error } = await supabase
         .from("appointments")
         .select(`
@@ -48,7 +53,7 @@ export default function ClientHome() {
           services (name, price),
           barbershops (name)
         `)
-        .eq("client_id", user.id)
+        .eq("client_id", clientData.id)
         .gte("appointment_date", new Date().toISOString())
         .order("appointment_date", { ascending: true })
         .limit(3);
@@ -62,7 +67,7 @@ export default function ClientHome() {
     }
   };
 
-  if (loading) {
+  if (loading || barbershopLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -70,7 +75,7 @@ export default function ClientHome() {
     );
   }
 
-  if (!hasBarbershop) {
+  if (!barbershopId) {
     return (
       <div className="max-w-2xl mx-auto space-y-8 text-center">
         <div className="space-y-2">
@@ -144,11 +149,7 @@ export default function ClientHome() {
 
       <div>
         <h2 className="text-2xl font-bold mb-4">Próximos Agendamentos</h2>
-        {loading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        ) : upcomingAppointments.length === 0 ? (
+        {upcomingAppointments.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
               <p className="text-muted-foreground mb-4">

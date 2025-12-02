@@ -2,8 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Image } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useClientBarbershop } from "@/hooks/useClientBarbershop";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,35 +17,7 @@ import { ClientMobileMenu } from "./ClientMobileMenu";
 export function ClientHeader() {
   const { signOut, user } = useAuth();
   const location = useLocation();
-  const [barbershop, setBarbershop] = useState<{ name: string; logo_url: string } | null>(null);
-
-  useEffect(() => {
-    const loadBarbershop = async () => {
-      if (!user) return;
-
-      // Get the barbershop from the first appointment
-      const { data: appointment } = await supabase
-        .from("appointments")
-        .select("barbershop_id")
-        .eq("client_id", user.id)
-        .limit(1)
-        .single();
-
-      if (appointment) {
-        const { data: barbershopData } = await supabase
-          .from("barbershops")
-          .select("name, logo_url")
-          .eq("id", appointment.barbershop_id)
-          .single();
-
-        if (barbershopData) {
-          setBarbershop(barbershopData);
-        }
-      }
-    };
-
-    loadBarbershop();
-  }, [user]);
+  const { barbershop } = useClientBarbershop();
 
   const navItems = [
     { path: "/client", label: "Início", icon: Home },

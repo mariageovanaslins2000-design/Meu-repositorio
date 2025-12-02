@@ -40,6 +40,31 @@ export const useBarbershopTheme = (barbershopId?: string) => {
     };
 
     loadTheme();
+
+    // Subscribe to realtime updates
+    if (barbershopId) {
+      const channel = supabase
+        .channel(`barbershop-theme-${barbershopId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'barbershops',
+            filter: `id=eq.${barbershopId}`
+          },
+          (payload) => {
+            const newData = payload.new as BarbershopTheme;
+            setTheme(newData);
+            applyTheme(newData);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [barbershopId]);
 
   const applyTheme = (themeData: BarbershopTheme) => {
