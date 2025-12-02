@@ -14,24 +14,24 @@ import { useToast } from "@/hooks/use-toast";
 import { Pencil, Upload } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface EditBarberDialogProps {
-  barber: any;
-  onBarberUpdated: () => void;
+interface EditProfessionalDialogProps {
+  professional: any;
+  onProfessionalUpdated: () => void;
 }
 
-export function EditBarberDialog({ barber, onBarberUpdated }: EditBarberDialogProps) {
+export function EditProfessionalDialog({ professional, onProfessionalUpdated }: EditProfessionalDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [photoUrl, setPhotoUrl] = useState(barber.photo_url || "");
+  const [photoUrl, setPhotoUrl] = useState(professional.photo_url || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: barber.name,
-    specialty: barber.specialty || "",
-    phone: barber.phone || "",
-    commission_percent: barber.commission_percent,
+    name: professional.name,
+    specialty: professional.specialty || "",
+    phone: professional.phone || "",
+    commission_percent: professional.commission_percent,
   });
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,13 +41,13 @@ export function EditBarberDialog({ barber, onBarberUpdated }: EditBarberDialogPr
     setUploading(true);
     try {
       // Delete old photo if exists
-      if (barber.photo_url) {
-        const oldPath = barber.photo_url.split('/').pop();
+      if (professional.photo_url) {
+        const oldPath = professional.photo_url.split('/').pop();
         await supabase.storage.from('barber-photos').remove([oldPath!]);
       }
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${barber.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${professional.id}-${Date.now()}.${fileExt}`;
       
       const { error: uploadError, data } = await supabase.storage
         .from('barber-photos')
@@ -87,17 +87,17 @@ export function EditBarberDialog({ barber, onBarberUpdated }: EditBarberDialogPr
           ...formData,
           photo_url: photoUrl,
         })
-        .eq("id", barber.id);
+        .eq("id", professional.id);
 
       if (error) throw error;
 
       toast({
-        title: "Barbeiro atualizado!",
+        title: "Profissional atualizado!",
         description: "As informações foram atualizadas com sucesso.",
       });
       
       setOpen(false);
-      onBarberUpdated();
+      onProfessionalUpdated();
     } catch (error: any) {
       toast({
         title: "Erro ao atualizar",
@@ -119,7 +119,7 @@ export function EditBarberDialog({ barber, onBarberUpdated }: EditBarberDialogPr
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Editar Barbeiro</DialogTitle>
+          <DialogTitle>Editar Profissional</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col items-center gap-4">
