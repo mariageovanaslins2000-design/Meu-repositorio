@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, Menu, User, LogOut, Image } from "lucide-react";
+import { Building2, Home, Calendar, Users, Briefcase, Menu, User, LogOut, Image } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
@@ -14,7 +14,7 @@ export function ClientMobileMenu() {
     { path: "/client", label: "Início", icon: Home },
     { path: "/client/booking", label: "Agendar", icon: Calendar },
     { path: "/client/appointments", label: "Meus Agendamentos", icon: Calendar },
-    { path: "/client/barbers", label: "Barbeiros", icon: Users },
+    { path: "/client/professionals", label: "Profissionais", icon: Users },
     { path: "/client/services", label: "Serviços", icon: Briefcase },
     { path: "/client/portfolio", label: "Portfólio", icon: Image },
   ];
@@ -33,9 +33,9 @@ export function ClientMobileMenu() {
           <div className="flex flex-col h-full">
             <div className="flex items-center gap-2 pb-6 border-b">
               <div className="p-2 bg-primary rounded-full">
-                <Scissors className="h-5 w-5 text-primary-foreground" />
+                <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold">BarberShop</span>
+              <span className="text-xl font-bold">Clínica</span>
             </div>
 
             <nav className="flex-1 py-6">

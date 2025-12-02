@@ -7,10 +7,10 @@ import {
   Briefcase,
   DollarSign, 
   Settings,
-  Scissors,
+  Image,
   LogOut,
   Menu,
-  X
+  Building2
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -25,21 +25,21 @@ import {
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Calendar, label: "Agendamentos", path: "/admin/appointments" },
-  { icon: Users, label: "Barbeiros", path: "/admin/barbers" },
+  { icon: Users, label: "Profissionais", path: "/admin/professionals" },
   { icon: Briefcase, label: "Serviços", path: "/admin/services" },
   { icon: Users, label: "Clientes", path: "/admin/clients" },
   { icon: DollarSign, label: "Financeiro", path: "/admin/financial" },
-  { icon: Scissors, label: "Portfólio", path: "/admin/portfolio" },
+  { icon: Image, label: "Portfólio", path: "/admin/portfolio" },
   { icon: Settings, label: "Configurações", path: "/admin/settings" },
 ];
 
 export const MobileSidebar = () => {
   const { user, signOut } = useAuth();
-  const [barbershopName, setBarbershopName] = useState("Barbearia");
+  const [clinicName, setClinicName] = useState("Clínica");
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const loadBarbershop = async () => {
+    const loadClinic = async () => {
       if (!user) return;
       
       const { data } = await supabase
@@ -49,11 +49,11 @@ export const MobileSidebar = () => {
         .maybeSingle();
       
       if (data) {
-        setBarbershopName(data.name);
+        setClinicName(data.name);
       }
     };
 
-    loadBarbershop();
+    loadClinic();
   }, [user]);
 
   return (
@@ -61,10 +61,10 @@ export const MobileSidebar = () => {
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-gradient-gold flex items-center justify-center">
-            <Scissors className="w-4 h-4 text-sidebar-primary-foreground" />
+            <Building2 className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-sidebar-foreground">IABarber</h1>
+            <h1 className="text-sm font-bold text-sidebar-foreground">IAClinic</h1>
           </div>
         </div>
 
@@ -80,11 +80,11 @@ export const MobileSidebar = () => {
               <div className="p-6 border-b border-sidebar-border">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-gold flex items-center justify-center">
-                    <Scissors className="w-5 h-5 text-sidebar-primary-foreground" />
+                    <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold text-sidebar-foreground">IABarber</h1>
-<p className="text-xs text-muted-foreground">Gestão Inteligente</p>
+                    <h1 className="text-lg font-bold text-sidebar-foreground">IAClinic</h1>
+                    <p className="text-xs text-muted-foreground">Gestão Inteligente</p>
                   </div>
                 </div>
               </div>
@@ -118,12 +118,12 @@ export const MobileSidebar = () => {
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent">
                   <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center">
                     <span className="text-sm font-bold text-sidebar-primary-foreground">
-                      {barbershopName.charAt(0).toUpperCase()}
+                      {clinicName.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-sidebar-foreground truncate">
-                      {barbershopName}
+                      {clinicName}
                     </p>
                     <p className="text-xs text-muted-foreground">Admin</p>
                   </div>

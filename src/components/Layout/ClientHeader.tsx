@@ -1,8 +1,8 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { Scissors, Home, Calendar, Users, Briefcase, User, LogOut, Image } from "lucide-react";
-import { useClientBarbershop } from "@/hooks/useClientBarbershop";
+import { Building2, Home, Calendar, Users, Briefcase, User, LogOut, Image } from "lucide-react";
+import { useClientClinic } from "@/hooks/useClientClinic";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,13 +17,13 @@ import { ClientMobileMenu } from "./ClientMobileMenu";
 export function ClientHeader() {
   const { signOut, user } = useAuth();
   const location = useLocation();
-  const { barbershop } = useClientBarbershop();
+  const { clinic } = useClientClinic();
 
   const navItems = [
     { path: "/client", label: "Início", icon: Home },
     { path: "/client/booking", label: "Agendar", icon: Calendar },
     { path: "/client/appointments", label: "Meus Agendamentos", icon: Calendar },
-    { path: "/client/barbers", label: "Barbeiros", icon: Users },
+    { path: "/client/professionals", label: "Profissionais", icon: Users },
     { path: "/client/services", label: "Serviços", icon: Briefcase },
     { path: "/client/portfolio", label: "Portfólio", icon: Image },
   ];
@@ -37,14 +37,14 @@ export function ClientHeader() {
           <ClientMobileMenu />
           
           <Link to="/client" className="flex items-center gap-2">
-            {barbershop?.logo_url ? (
-              <img src={barbershop.logo_url} alt={barbershop.name} className="h-10 w-10 object-contain rounded-lg" />
+            {clinic?.logo_url ? (
+              <img src={clinic.logo_url} alt={clinic.name} className="h-10 w-10 object-contain rounded-lg" />
             ) : (
               <div className="p-2 bg-primary rounded-full">
-                <Scissors className="h-5 w-5 text-primary-foreground" />
+                <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
             )}
-            <span className="text-lg md:text-xl font-bold">{barbershop?.name || "BarberShop"}</span>
+            <span className="text-lg md:text-xl font-bold">{clinic?.name || "Clínica"}</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">

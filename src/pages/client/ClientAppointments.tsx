@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useClientBarbershop } from "@/hooks/useClientBarbershop";
+import { useClientClinic } from "@/hooks/useClientClinic";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ import {
 
 export default function ClientAppointments() {
   const { user } = useAuth();
-  const { barbershopId, loading: barbershopLoading } = useClientBarbershop();
+  const { clinicId, loading: clinicLoading } = useClientClinic();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; appointmentId: string | null }>({
@@ -31,23 +31,22 @@ export default function ClientAppointments() {
   });
 
   useEffect(() => {
-    if (!barbershopLoading && barbershopId) {
+    if (!clinicLoading && clinicId) {
       loadAppointments();
-    } else if (!barbershopLoading) {
+    } else if (!clinicLoading) {
       setLoading(false);
     }
-  }, [user, barbershopId, barbershopLoading]);
+  }, [user, clinicId, clinicLoading]);
 
   const loadAppointments = async () => {
-    if (!user || !barbershopId) return;
+    if (!user || !clinicId) return;
 
     try {
-      // First get the client record for this user
       const { data: clientData, error: clientError } = await supabase
         .from("clients")
         .select("id")
         .eq("profile_id", user.id)
-        .eq("barbershop_id", barbershopId)
+        .eq("barbershop_id", clinicId)
         .maybeSingle();
 
       if (clientError) throw clientError;
@@ -58,7 +57,6 @@ export default function ClientAppointments() {
         return;
       }
 
-      // Now fetch appointments using the correct client.id
       const { data, error } = await supabase
         .from("appointments")
         .select(`
@@ -122,7 +120,7 @@ export default function ClientAppointments() {
     );
   };
 
-  if (loading || barbershopLoading) {
+  if (loading || clinicLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

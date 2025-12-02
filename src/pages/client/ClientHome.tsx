@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useClientBarbershop } from "@/hooks/useClientBarbershop";
+import { useClientClinic } from "@/hooks/useClientClinic";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, User, Store } from "lucide-react";
@@ -12,28 +12,27 @@ import { ptBR } from "date-fns/locale";
 export default function ClientHome() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { barbershopId, loading: barbershopLoading } = useClientBarbershop();
+  const { clinicId, loading: clinicLoading } = useClientClinic();
   const [upcomingAppointments, setUpcomingAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!barbershopLoading && barbershopId) {
+    if (!clinicLoading && clinicId) {
       loadUpcomingAppointments();
-    } else if (!barbershopLoading) {
+    } else if (!clinicLoading) {
       setLoading(false);
     }
-  }, [user, barbershopId, barbershopLoading]);
+  }, [user, clinicId, clinicLoading]);
 
   const loadUpcomingAppointments = async () => {
-    if (!user || !barbershopId) return;
+    if (!user || !clinicId) return;
 
     try {
-      // First get the client record for this user
       const { data: clientData, error: clientError } = await supabase
         .from("clients")
         .select("id")
         .eq("profile_id", user.id)
-        .eq("barbershop_id", barbershopId)
+        .eq("barbershop_id", clinicId)
         .maybeSingle();
 
       if (clientError) throw clientError;
@@ -44,7 +43,6 @@ export default function ClientHome() {
         return;
       }
 
-      // Now fetch appointments using the correct client.id
       const { data, error } = await supabase
         .from("appointments")
         .select(`
@@ -67,7 +65,7 @@ export default function ClientHome() {
     }
   };
 
-  if (loading || barbershopLoading) {
+  if (loading || clinicLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -75,14 +73,14 @@ export default function ClientHome() {
     );
   }
 
-  if (!barbershopId) {
+  if (!clinicId) {
     return (
       <div className="max-w-2xl mx-auto space-y-8 text-center">
         <div className="space-y-2">
           <Store className="h-16 w-16 mx-auto text-primary" />
           <h1 className="text-3xl font-bold">Bem-vindo!</h1>
           <p className="text-muted-foreground">
-            Para começar a usar o sistema, você precisa selecionar uma barbearia
+            Para começar a usar o sistema, você precisa selecionar uma clínica
           </p>
         </div>
 
@@ -90,12 +88,12 @@ export default function ClientHome() {
           <CardHeader>
             <CardTitle>Próximos Passos</CardTitle>
             <CardDescription>
-              Escolha uma barbearia para acessar todos os recursos
+              Escolha uma clínica para acessar todos os recursos
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/client/select-barbershop")} className="w-full">
-              Selecionar Barbearia
+            <Button onClick={() => navigate("/client/select-clinic")} className="w-full">
+              Selecionar Clínica
             </Button>
           </CardContent>
         </Card>

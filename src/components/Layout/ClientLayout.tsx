@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
 import { ClientHeader } from "./ClientHeader";
-import { useBarbershopTheme } from "@/hooks/useBarbershopTheme";
-import { useClientBarbershop } from "@/hooks/useClientBarbershop";
+import { useClinicTheme } from "@/hooks/useClinicTheme";
+import { useClientClinic } from "@/hooks/useClientClinic";
 
 export function ClientLayout() {
-  const { barbershopId } = useClientBarbershop();
-  useBarbershopTheme(barbershopId || undefined);
+  const { clinicId } = useClientClinic();
+  useClinicTheme(clinicId || undefined);
 
   return (
     <div className="min-h-screen bg-background">

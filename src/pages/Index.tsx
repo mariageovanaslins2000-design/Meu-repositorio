@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scissors, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect } from "react";
 
 const Index = () => {
@@ -33,11 +33,11 @@ const Index = () => {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <div className="p-4 bg-primary rounded-full">
-              <Scissors className="h-12 w-12 text-primary-foreground" />
+              <Building2 className="h-12 w-12 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold mb-2">IABarber</h1>
-          <p className="text-xl text-muted-foreground">Sistema de Gestão de Barbearias</p>
+          <h1 className="text-4xl font-bold mb-2">IAClinic</h1>
+          <p className="text-xl text-muted-foreground">Sistema de Gestão de Clínicas</p>
         </div>
 
         <Card className="hover:shadow-lg transition-shadow">
@@ -48,7 +48,7 @@ const Index = () => {
               </div>
             </div>
             <CardTitle className="text-2xl">Área Administrativa</CardTitle>
-            <CardDescription>Gerencie sua barbearia</CardDescription>
+            <CardDescription>Gerencie sua clínica</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scissors } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { z } from "zod";
 import { PasswordStrengthIndicator } from "@/components/Auth/PasswordStrengthIndicator";
 
@@ -20,7 +20,7 @@ const signUpSchema = z.object({
   password: strongPasswordSchema,
   fullName: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
   phone: z.string().min(10, "Telefone inválido"),
-  barbershopName: z.string().optional(),
+  clinicName: z.string().optional(),
 });
 
 const signInSchema = z.object({
@@ -38,7 +38,7 @@ export default function Auth() {
     password: "",
     fullName: "",
     phone: "",
-    barbershopName: "",
+    clinicName: "",
   });
 
   const [signInData, setSignInData] = useState({
@@ -56,7 +56,7 @@ export default function Auth() {
     try {
       const validationData = accountType === "owner" 
         ? signUpData 
-        : { ...signUpData, barbershopName: undefined };
+        : { ...signUpData, clinicName: undefined };
       
       signUpSchema.parse(validationData);
 
@@ -66,7 +66,7 @@ export default function Auth() {
         signUpData.fullName,
         signUpData.phone,
         accountType,
-        accountType === "owner" ? signUpData.barbershopName : undefined
+        accountType === "owner" ? signUpData.clinicName : undefined
       );
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -112,11 +112,11 @@ export default function Auth() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-primary rounded-full">
-              <Scissors className="h-8 w-8 text-primary-foreground" />
+              <Building2 className="h-8 w-8 text-primary-foreground" />
             </div>
           </div>
-          <CardTitle className="text-2xl">BarberShop</CardTitle>
-          <CardDescription>Sistema de Gestão de Barbearias</CardDescription>
+          <CardTitle className="text-2xl">IAClinic</CardTitle>
+          <CardDescription>Sistema de Gestão de Clínicas</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -184,15 +184,15 @@ export default function Auth() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="barbershop">Nome da Barbearia</Label>
+                  <Label htmlFor="clinic">Nome da Clínica</Label>
                   <Input
-                    id="barbershop"
-                    placeholder="Minha Barbearia"
-                    value={signUpData.barbershopName}
-                    onChange={(e) => setSignUpData({ ...signUpData, barbershopName: e.target.value })}
+                    id="clinic"
+                    placeholder="Minha Clínica"
+                    value={signUpData.clinicName}
+                    onChange={(e) => setSignUpData({ ...signUpData, clinicName: e.target.value })}
                     required
                   />
-                  {errors.barbershopName && <p className="text-sm text-destructive">{errors.barbershopName}</p>}
+                  {errors.clinicName && <p className="text-sm text-destructive">{errors.clinicName}</p>}
                 </div>
 
                 <div className="space-y-2">

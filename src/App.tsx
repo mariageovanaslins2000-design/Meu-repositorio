@@ -11,7 +11,7 @@ import { ClientLayout } from "@/components/Layout/ClientLayout";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Appointments from "./pages/Appointments";
-import Barbers from "./pages/Barbers";
+import Professionals from "./pages/Professionals";
 import Services from "./pages/Services";
 import Clients from "./pages/Clients";
 import Financial from "./pages/Financial";
@@ -20,11 +20,11 @@ import Portfolio from "./pages/Portfolio";
 import ClientHome from "./pages/client/ClientHome";
 import ClientBooking from "./pages/client/ClientBooking";
 import ClientAppointments from "./pages/client/ClientAppointments";
-import ClientBarbers from "./pages/client/ClientBarbers";
+import ClientProfessionals from "./pages/client/ClientProfessionals";
 import ClientServices from "./pages/client/ClientServices";
 import ClientProfile from "./pages/client/ClientProfile";
 import ClientPortfolio from "./pages/client/ClientPortfolio";
-import SelectBarbershop from "./pages/client/SelectBarbershop";
+import SelectClinic from "./pages/client/SelectClinic";
 import ClientSignup from "./pages/ClientSignup";
 import ClientLogin from "./pages/ClientLogin";
 
@@ -61,7 +61,7 @@ const App = () => (
             >
               <Route index element={<Dashboard />} />
               <Route path="appointments" element={<Appointments />} />
-              <Route path="barbers" element={<Barbers />} />
+              <Route path="professionals" element={<Professionals />} />
               <Route path="services" element={<Services />} />
               <Route path="clients" element={<Clients />} />
               <Route path="financial" element={<Financial />} />
@@ -79,10 +79,10 @@ const App = () => (
               }
             >
               <Route index element={<ClientHome />} />
-              <Route path="select-barbershop" element={<SelectBarbershop />} />
+              <Route path="select-clinic" element={<SelectClinic />} />
               <Route path="booking" element={<ClientBooking />} />
               <Route path="appointments" element={<ClientAppointments />} />
-              <Route path="barbers" element={<ClientBarbers />} />
+              <Route path="professionals" element={<ClientProfessionals />} />
               <Route path="services" element={<ClientServices />} />
               <Route path="portfolio" element={<ClientPortfolio />} />
               <Route path="profile" element={<ClientProfile />} />
