@@ -1,15 +1,69 @@
 import { useState, useEffect } from "react";
-import { Clock, DollarSign, Briefcase } from "lucide-react";
+import { Clock, DollarSign, Briefcase, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AddServiceDialog } from "@/components/Services/AddServiceDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 const Services = () => {
   const { user } = useAuth();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [serviceToDelete, setServiceToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteService = async () => {
+    if (!serviceToDelete) return;
+    
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("services")
+        .delete()
+        .eq("id", serviceToDelete.id);
+
+      if (error) {
+        if (error.code === "23503") {
+          toast({
+            title: "Não é possível excluir",
+            description: "Este serviço está vinculado a agendamentos. Considere inativá-lo ao invés de excluir.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Serviço excluído",
+          description: `O serviço "${serviceToDelete.name}" foi excluído com sucesso.`,
+        });
+        loadServices();
+      }
+    } catch (error) {
+      console.error("Error deleting service:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o serviço.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setServiceToDelete(null);
+    }
+  };
 
   const loadServices = async () => {
     try {
@@ -85,9 +139,19 @@ const Services = () => {
                       </CardDescription>
                     )}
                   </div>
-                  <Badge variant={service.is_active ? "default" : "secondary"}>
-                    {service.is_active ? "Ativo" : "Inativo"}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={service.is_active ? "default" : "secondary"}>
+                      {service.is_active ? "Ativo" : "Inativo"}
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setServiceToDelete(service)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -108,6 +172,28 @@ const Services = () => {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!serviceToDelete} onOpenChange={() => setServiceToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o serviço "{serviceToDelete?.name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteService}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -1,16 +1,70 @@
 import { useState, useEffect } from "react";
-import { Mail, Phone, User } from "lucide-react";
+import { Phone, User, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AddBarberDialog } from "@/components/Barbers/AddBarberDialog";
 import { EditBarberDialog } from "@/components/Barbers/EditBarberDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "@/hooks/use-toast";
 
 const Barbers = () => {
   const { user } = useAuth();
   const [barbers, setBarbers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [barberToDelete, setBarberToDelete] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteBarber = async () => {
+    if (!barberToDelete) return;
+    
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("barbers")
+        .delete()
+        .eq("id", barberToDelete.id);
+
+      if (error) {
+        if (error.code === "23503") {
+          toast({
+            title: "Não é possível excluir",
+            description: "Este barbeiro está vinculado a agendamentos. Considere inativá-lo ao invés de excluir.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Barbeiro excluído",
+          description: `O barbeiro "${barberToDelete.name}" foi excluído com sucesso.`,
+        });
+        loadBarbers();
+      }
+    } catch (error) {
+      console.error("Error deleting barber:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o barbeiro.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setBarberToDelete(null);
+    }
+  };
 
   const loadBarbers = async () => {
     try {
@@ -87,7 +141,17 @@ const Barbers = () => {
                   <div className="flex-1 text-center sm:text-left">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <h3 className="text-xl font-bold">{barber.name}</h3>
-                      <EditBarberDialog barber={barber} onBarberUpdated={loadBarbers} />
+                      <div className="flex items-center gap-2">
+                        <EditBarberDialog barber={barber} onBarberUpdated={loadBarbers} />
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setBarberToDelete(barber)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4">
                       {barber.specialty || "Barbeiro"}
@@ -119,6 +183,28 @@ const Barbers = () => {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!barberToDelete} onOpenChange={() => setBarberToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o barbeiro "{barberToDelete?.name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteBarber}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
