@@ -330,9 +330,9 @@ const Appointments = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
         {/* Calendar */}
-        <Card className="lg:col-span-1 shadow-elegant min-w-fit">
+        <Card className="shadow-elegant">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="w-5 h-5" />
@@ -350,7 +350,7 @@ const Appointments = () => {
         </Card>
 
         {/* Appointments List */}
-        <Card className="lg:col-span-2 shadow-elegant">
+        <Card className="shadow-elegant">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
