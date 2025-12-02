@@ -147,6 +147,8 @@ const Appointments = () => {
           id,
           barbershop_id,
           barber_id,
+          client_id,
+          appointment_date,
           service_id,
           services (price)
         `)
@@ -191,7 +193,28 @@ const Appointments = () => {
         throw new Error("Erro ao criar registro financeiro");
       }
 
-      // 5. Atualizar status do agendamento
+      // 5. Atualizar dados do cliente (total_visits e last_appointment_at)
+      const { data: clientData } = await supabase
+        .from("clients")
+        .select("total_visits")
+        .eq("id", appointment.client_id)
+        .single();
+
+      if (clientData) {
+        const { error: clientUpdateError } = await supabase
+          .from("clients")
+          .update({
+            total_visits: (clientData.total_visits || 0) + 1,
+            last_appointment_at: appointment.appointment_date
+          })
+          .eq("id", appointment.client_id);
+
+        if (clientUpdateError) {
+          console.error("Error updating client:", clientUpdateError);
+        }
+      }
+
+      // 6. Atualizar status do agendamento
       const { error: updateError } = await supabase
         .from("appointments")
         .update({ status: "confirmed" })
