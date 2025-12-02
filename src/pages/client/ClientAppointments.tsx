@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useClientBarbershop } from "@/hooks/useClientBarbershop";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import {
 
 export default function ClientAppointments() {
   const { user } = useAuth();
+  const { barbershopId, loading: barbershopLoading } = useClientBarbershop();
   const [appointments, setAppointments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelDialog, setCancelDialog] = useState<{ open: boolean; appointmentId: string | null }>({
@@ -29,13 +31,34 @@ export default function ClientAppointments() {
   });
 
   useEffect(() => {
-    loadAppointments();
-  }, [user]);
+    if (!barbershopLoading && barbershopId) {
+      loadAppointments();
+    } else if (!barbershopLoading) {
+      setLoading(false);
+    }
+  }, [user, barbershopId, barbershopLoading]);
 
   const loadAppointments = async () => {
-    if (!user) return;
+    if (!user || !barbershopId) return;
 
     try {
+      // First get the client record for this user
+      const { data: clientData, error: clientError } = await supabase
+        .from("clients")
+        .select("id")
+        .eq("profile_id", user.id)
+        .eq("barbershop_id", barbershopId)
+        .maybeSingle();
+
+      if (clientError) throw clientError;
+
+      if (!clientData) {
+        setAppointments([]);
+        setLoading(false);
+        return;
+      }
+
+      // Now fetch appointments using the correct client.id
       const { data, error } = await supabase
         .from("appointments")
         .select(`
@@ -44,7 +67,7 @@ export default function ClientAppointments() {
           services (name, price, duration_minutes),
           barbershops (name)
         `)
-        .eq("client_id", user.id)
+        .eq("client_id", clientData.id)
         .order("appointment_date", { ascending: false });
 
       if (error) throw error;
@@ -99,7 +122,7 @@ export default function ClientAppointments() {
     );
   };
 
-  if (loading) {
+  if (loading || barbershopLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

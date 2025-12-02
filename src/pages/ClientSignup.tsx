@@ -8,10 +8,17 @@ import { Scissors } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { PasswordStrengthIndicator } from "@/components/Auth/PasswordStrengthIndicator";
+
+const strongPasswordSchema = z.string()
+  .min(8, "Senha deve ter no mínimo 8 caracteres")
+  .regex(/[A-Z]/, "Deve conter pelo menos uma letra maiúscula")
+  .regex(/[0-9]/, "Deve conter pelo menos um número")
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, "Deve conter pelo menos um caractere especial");
 
 const signUpSchema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter no mínimo 6 caracteres"),
+  password: strongPasswordSchema,
   fullName: z.string().min(2, "Nome deve ter no mínimo 2 caracteres"),
   phone: z.string().min(10, "Telefone inválido"),
 });
@@ -202,6 +209,7 @@ export default function ClientSignup() {
                 required
               />
               {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+              <PasswordStrengthIndicator password={signUpData.password} />
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
