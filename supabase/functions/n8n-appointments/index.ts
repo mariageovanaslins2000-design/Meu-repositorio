@@ -257,8 +257,8 @@ serve(async (req) => {
           client_id = newClient.id;
         }
 
-        // Verificar conflito de horário
-        const appointmentDateTime = `${date}T${time}:00`;
+        // Verificar conflito de horário (com timezone de Brasília)
+        const appointmentDateTime = `${date}T${time}:00-03:00`;
         const appointmentStart = new Date(appointmentDateTime);
         const appointmentEnd = new Date(appointmentStart.getTime() + service.duration_minutes * 60000);
 

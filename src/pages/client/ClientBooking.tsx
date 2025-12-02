@@ -196,13 +196,21 @@ export default function ClientBooking() {
 
       const [hours, minutes] = selectedTime.split(':');
       const appointmentDateTime = setHours(setMinutes(selectedDate, parseInt(minutes)), parseInt(hours));
+      
+      // Formatar com timezone de Brasília
+      const year = appointmentDateTime.getFullYear();
+      const month = String(appointmentDateTime.getMonth() + 1).padStart(2, '0');
+      const day = String(appointmentDateTime.getDate()).padStart(2, '0');
+      const hour = String(appointmentDateTime.getHours()).padStart(2, '0');
+      const minute = String(appointmentDateTime.getMinutes()).padStart(2, '0');
+      const appointmentDateTimeString = `${year}-${month}-${day}T${hour}:${minute}:00-03:00`;
 
       const { error } = await supabase.from("appointments").insert({
         barbershop_id: barbershop.id,
         barber_id: selectedBarber.id,
         client_id: clientData.id,
         service_id: selectedService.id,
-        appointment_date: appointmentDateTime.toISOString(),
+        appointment_date: appointmentDateTimeString,
         notes,
         status: "pending",
       });
