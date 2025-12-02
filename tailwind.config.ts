@@ -60,7 +60,7 @@ export default {
       },
       backgroundImage: {
         'gradient-premium': 'var(--gradient-premium)',
-        'gradient-gold': 'var(--gradient-gold)',
+        'gradient-salmon': 'var(--gradient-salmon)',
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',

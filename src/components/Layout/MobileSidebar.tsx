@@ -60,7 +60,7 @@ export const MobileSidebar = () => {
     <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar border-b border-sidebar-border">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-gold flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-salmon flex items-center justify-center">
             <Building2 className="w-4 h-4 text-sidebar-primary-foreground" />
           </div>
           <div>
@@ -79,7 +79,7 @@ export const MobileSidebar = () => {
               {/* Logo */}
               <div className="p-6 border-b border-sidebar-border">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-gold flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-salmon flex items-center justify-center">
                     <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
                   </div>
                   <div>
@@ -115,8 +115,8 @@ export const MobileSidebar = () => {
 
               {/* User Profile */}
               <div className="p-4 border-t border-sidebar-border space-y-2">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent">
-                  <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent">
+                  <div className="w-10 h-10 rounded-full bg-gradient-salmon flex items-center justify-center">
                     <span className="text-sm font-bold text-sidebar-primary-foreground">
                       {clinicName.charAt(0).toUpperCase()}
                     </span>

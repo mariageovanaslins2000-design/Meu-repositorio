@@ -43,20 +43,20 @@ export function EditProfessionalDialog({ professional, onProfessionalUpdated }: 
       // Delete old photo if exists
       if (professional.photo_url) {
         const oldPath = professional.photo_url.split('/').pop();
-        await supabase.storage.from('barber-photos').remove([oldPath!]);
+        await supabase.storage.from('professional-photos').remove([oldPath!]);
       }
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${professional.id}-${Date.now()}.${fileExt}`;
       
       const { error: uploadError, data } = await supabase.storage
-        .from('barber-photos')
+        .from('professional-photos')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('barber-photos')
+        .from('professional-photos')
         .getPublicUrl(fileName);
 
       setPhotoUrl(publicUrl);
@@ -125,7 +125,7 @@ export function EditProfessionalDialog({ professional, onProfessionalUpdated }: 
           <div className="flex flex-col items-center gap-4">
             <Avatar className="w-24 h-24">
               {photoUrl && <AvatarImage src={photoUrl} />}
-              <AvatarFallback className="bg-gradient-gold text-2xl">
+              <AvatarFallback className="bg-gradient-salmon text-2xl">
                 {formData.name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
