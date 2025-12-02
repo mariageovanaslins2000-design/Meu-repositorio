@@ -140,16 +140,68 @@ const Appointments = () => {
 
   const handleConfirmAppointment = async (appointmentId: string) => {
     try {
-      const { error } = await supabase
+      // 1. Buscar dados do agendamento
+      const { data: appointment, error: appointmentError } = await supabase
+        .from("appointments")
+        .select(`
+          id,
+          barbershop_id,
+          barber_id,
+          service_id,
+          services (price)
+        `)
+        .eq("id", appointmentId)
+        .single();
+
+      if (appointmentError || !appointment) {
+        throw new Error("Agendamento não encontrado");
+      }
+
+      // 2. Buscar comissão do barbeiro
+      const { data: barber, error: barberError } = await supabase
+        .from("barbers")
+        .select("commission_percent")
+        .eq("id", appointment.barber_id)
+        .single();
+
+      if (barberError || !barber) {
+        throw new Error("Barbeiro não encontrado");
+      }
+
+      // 3. Calcular valores financeiros
+      const valorTotal = (appointment.services as any)?.price || 0;
+      const comissaoPercent = barber.commission_percent || 50;
+      const comissaoValor = (valorTotal * comissaoPercent) / 100;
+      const valorLiquidoBarbearia = valorTotal - comissaoValor;
+
+      // 4. Criar registro financeiro
+      const { error: financialError } = await supabase.from("financial_records").insert({
+        barbershop_id: appointment.barbershop_id,
+        appointment_id: appointmentId,
+        barber_id: appointment.barber_id,
+        valor_total: valorTotal,
+        comissao_percent: comissaoPercent,
+        comissao_valor: comissaoValor,
+        valor_liquido_barbearia: valorLiquidoBarbearia,
+        status: "EFETIVADO"
+      });
+
+      if (financialError) {
+        console.error("Error creating financial record:", financialError);
+        throw new Error("Erro ao criar registro financeiro");
+      }
+
+      // 5. Atualizar status do agendamento
+      const { error: updateError } = await supabase
         .from("appointments")
         .update({ status: "confirmed" })
         .eq("id", appointmentId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
       toast({
         title: "Sucesso",
-        description: "Agendamento confirmado!",
+        description: "Agendamento confirmado e financeiro atualizado!",
       });
 
       // Recarregar dados
@@ -158,7 +210,7 @@ const Appointments = () => {
       console.error("Error confirming appointment:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível confirmar o agendamento",
+        description: error instanceof Error ? error.message : "Não foi possível confirmar o agendamento",
         variant: "destructive",
       });
     }

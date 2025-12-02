@@ -37,7 +37,7 @@ export function ClientLinkGenerator() {
   };
 
   const signupLink = barbershopId 
-    ? `${window.location.origin}/cadastro-cliente?barbershopId=${barbershopId}`
+    ? `${window.location.origin}/cadastro-cliente?idBarbearia=${barbershopId}`
     : "";
 
   const handleCopyLink = async () => {
