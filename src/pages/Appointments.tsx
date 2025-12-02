@@ -1,14 +1,23 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Clock, X } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, X, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -36,7 +45,45 @@ const Appointments = () => {
   const [barbers, setBarbers] = useState<Barber[]>([]);
   const [selectedBarber, setSelectedBarber] = useState<string>("all");
   const [loading, setLoading] = useState(true);
+  const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
+
+  const handleDeleteAppointment = async () => {
+    if (!appointmentToDelete) return;
+    
+    setDeleting(true);
+    try {
+      // Primeiro deletar registros financeiros vinculados
+      await supabase
+        .from("financial_records")
+        .delete()
+        .eq("appointment_id", appointmentToDelete.id);
+
+      const { error } = await supabase
+        .from("appointments")
+        .delete()
+        .eq("id", appointmentToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Agendamento excluído",
+        description: "O agendamento foi excluído com sucesso.",
+      });
+      loadData();
+    } catch (error) {
+      console.error("Error deleting appointment:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o agendamento.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setAppointmentToDelete(null);
+    }
+  };
 
   useEffect(() => {
     loadData();
@@ -441,8 +488,18 @@ const Appointments = () => {
                         <p className="text-xs text-muted-foreground">Barbeiro</p>
                       </div>
                       
-                      <div>
+                      <div className="flex items-center gap-2">
                         {getStatusBadge(appointment.id, appointment.status)}
+                        {appointment.status === "cancelled" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setAppointmentToDelete(appointment)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -452,6 +509,28 @@ const Appointments = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!appointmentToDelete} onOpenChange={() => setAppointmentToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o agendamento de "{appointmentToDelete?.client.full_name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAppointment}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

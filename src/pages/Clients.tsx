@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Phone, Calendar, TrendingUp, Search, UserX } from "lucide-react";
+import { Users, Phone, Calendar, Search, UserX, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,8 +13,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "@/hooks/use-toast";
 
 interface Client {
   id: string;
@@ -44,6 +55,48 @@ const Clients = () => {
   const [appointmentHistory, setAppointmentHistory] = useState<AppointmentHistory[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState("todos");
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClient = async () => {
+    if (!clientToDelete) return;
+    
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("clients")
+        .delete()
+        .eq("id", clientToDelete.id);
+
+      if (error) {
+        if (error.code === "23503") {
+          toast({
+            title: "Não é possível excluir",
+            description: "Este cliente está vinculado a agendamentos. Exclua os agendamentos primeiro.",
+            variant: "destructive",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Cliente excluído",
+          description: `O cliente "${clientToDelete.full_name}" foi excluído com sucesso.`,
+        });
+        loadClients();
+      }
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o cliente.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleting(false);
+      setClientToDelete(null);
+    }
+  };
 
   useEffect(() => {
     loadClients();
@@ -330,23 +383,22 @@ const Clients = () => {
                   </div>
                 </div>
 
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedClient(client);
-                        if (client.profile_id) {
-                          loadClientHistory(client.profile_id);
-                        }
-                      }}
-                      className="w-full sm:w-auto"
-                      disabled={client.total_appointments === 0}
-                    >
-                      Ver Histórico
-                    </Button>
-                  </DialogTrigger>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedClient(client);
+                          loadClientHistory(client.id);
+                        }}
+                        className="flex-1 sm:flex-none"
+                        disabled={client.total_appointments === 0}
+                      >
+                        Ver Histórico
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle>Histórico de {selectedClient?.full_name}</DialogTitle>
@@ -388,8 +440,17 @@ const Clients = () => {
                         ))
                       )}
                     </div>
-                  </DialogContent>
-                </Dialog>
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setClientToDelete(client)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             ))}
 
@@ -416,6 +477,28 @@ const Clients = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!clientToDelete} onOpenChange={() => setClientToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir o cliente "{clientToDelete?.full_name}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteClient}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
