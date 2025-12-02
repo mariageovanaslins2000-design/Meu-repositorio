@@ -203,14 +203,14 @@ const Financial = () => {
 
       setTransactions(transactionsData);
 
-      // Calculate pending revenue (appointments not yet completed)
+      // Calculate pending revenue (appointments not yet completed - only "pending" status)
       const { data: pendingAppointments } = await supabase
         .from("appointments")
         .select(`
           service_id
         `)
         .eq("barbershop_id", barbershop.id)
-        .in("status", ["pending", "confirmed"]);
+        .eq("status", "pending");
 
       if (pendingAppointments && pendingAppointments.length > 0) {
         const pendingServiceIds = [...new Set(pendingAppointments.map(a => a.service_id))];
