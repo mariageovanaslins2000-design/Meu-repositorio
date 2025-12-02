@@ -352,6 +352,49 @@ serve(async (req) => {
           throw new Error('Serviço não encontrado ou não pertence a esta barbearia');
         }
 
+        // Buscar informações da barbearia para validações
+        const { data: barbershop, error: barbershopError } = await supabase
+          .from('barbershops')
+          .select('opening_time, closing_time, working_days')
+          .eq('id', barbershop_id)
+          .single();
+
+        if (barbershopError || !barbershop) {
+          throw new Error('Barbearia não encontrada');
+        }
+
+        // VALIDAÇÃO 1: Data/horário passado
+        const now = new Date();
+        const appointmentDateTime = `${date}T${time}:00-03:00`;
+        const appointmentStart = new Date(appointmentDateTime);
+        
+        if (appointmentStart < now) {
+          throw new Error('Não é possível agendar em datas/horários passados');
+        }
+
+        // VALIDAÇÃO 2: Dia de trabalho
+        const dateObj = new Date(date + 'T00:00:00-03:00');
+        const dayOfWeek = dateObj.getDay();
+        
+        if (!barbershop.working_days.includes(dayOfWeek)) {
+          const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+          throw new Error(`Barbearia não funciona ${diasSemana[dayOfWeek]}`);
+        }
+
+        // VALIDAÇÃO 3: Horário de expediente
+        const [openHour, openMinute] = barbershop.opening_time.split(':').map(Number);
+        const [closeHour, closeMinute] = barbershop.closing_time.split(':').map(Number);
+        const [timeHour, timeMinute] = time.split(':').map(Number);
+
+        const timeInMinutes = timeHour * 60 + timeMinute;
+        const openInMinutes = openHour * 60 + openMinute;
+        const closeInMinutes = closeHour * 60 + closeMinute;
+        const serviceEndInMinutes = timeInMinutes + service.duration_minutes;
+
+        if (timeInMinutes < openInMinutes || serviceEndInMinutes > closeInMinutes) {
+          throw new Error(`Horário fora do expediente (${barbershop.opening_time} - ${barbershop.closing_time})`);
+        }
+
         // Buscar ou criar cliente
         let client_id: string;
 
@@ -392,9 +435,7 @@ serve(async (req) => {
           client_id = newClient.id;
         }
 
-        // Verificar conflito de horário (com timezone de Brasília)
-        const appointmentDateTime = `${date}T${time}:00-03:00`;
-        const appointmentStart = new Date(appointmentDateTime);
+        // Verificar conflito de horário
         const appointmentEnd = new Date(appointmentStart.getTime() + service.duration_minutes * 60000);
 
         console.log(`[createAppointment] Verificando conflitos para ${appointmentDateTime}`);
