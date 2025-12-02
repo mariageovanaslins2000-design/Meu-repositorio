@@ -67,21 +67,18 @@ const [barbershopId, setBarbershopId] = useState<string | null>(null);
 const loadBarbershopInfo = async (id: string) => {
     try {
       const { data, error } = await supabase
-        .from("barbershops")
-        .select("name, logo_url")
-        .eq("id", id)
-        .maybeSingle();
+        .rpc("get_barbershop_public_info", { barbershop_id: id });
 
       if (error) throw error;
       
-      if (!data) {
+      if (!data || data.length === 0) {
         toast.error("Barbearia não encontrada. Verifique se o link está correto.");
         navigate("/auth");
         return;
       }
       
-      setBarbershopName(data.name);
-      setBarbershopLogo(data.logo_url);
+      setBarbershopName(data[0].name);
+      setBarbershopLogo(data[0].logo_url);
     } catch (error) {
       console.error("Erro ao carregar barbearia:", error);
       toast.error("Erro ao carregar informações da barbearia. Tente novamente.");

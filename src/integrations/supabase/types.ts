@@ -523,6 +523,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_barbershop_public_info: {
+        Args: { barbershop_id: string }
+        Returns: {
+          id: string
+          logo_url: string
+          name: string
+        }[]
+      }
       get_user_barbershop_id: { Args: { user_id: string }; Returns: string }
       has_role: {
         Args: {
