@@ -143,9 +143,13 @@ serve(async (req) => {
 
       case 'getAvailableTimes': {
         const { barber_id, service_id, date } = body;
-        if (!barber_id || !service_id || !date) {
-          throw new Error('barber_id, service_id e date são obrigatórios para getAvailableTimes');
+        
+        // service_id agora é opcional - disponibilidade é por barbeiro
+        if (!barber_id || !date) {
+          throw new Error('barber_id e date são obrigatórios para getAvailableTimes');
         }
+
+        console.log(`[getAvailableTimes] Buscando horários para barbeiro ${barber_id} na data ${date}`);
 
         // Validar que barbeiro pertence à barbearia
         const { data: barber, error: barberError } = await supabase
@@ -159,17 +163,26 @@ serve(async (req) => {
           throw new Error('Barbeiro não encontrado ou não pertence a esta barbearia');
         }
 
-        // Validar que serviço pertence à barbearia
-        const { data: service, error: serviceError } = await supabase
-          .from('services')
-          .select('*')
-          .eq('id', service_id)
-          .eq('barbershop_id', barbershop_id)
-          .single();
+        // Duração padrão de 30 minutos se service_id não for fornecido
+        let serviceDuration = 30;
+        
+        if (service_id) {
+          // Validar que serviço pertence à barbearia
+          const { data: service, error: serviceError } = await supabase
+            .from('services')
+            .select('*')
+            .eq('id', service_id)
+            .eq('barbershop_id', barbershop_id)
+            .single();
 
-        if (serviceError || !service) {
-          throw new Error('Serviço não encontrado ou não pertence a esta barbearia');
+          if (serviceError || !service) {
+            console.log(`[getAvailableTimes] Serviço ${service_id} não encontrado, usando duração padrão de 30 min`);
+          } else {
+            serviceDuration = service.duration_minutes;
+          }
         }
+
+        console.log(`[getAvailableTimes] Usando duração de ${serviceDuration} minutos`);
 
         // Buscar horários da barbearia
         const { data: barbershop, error: barbershopError } = await supabase
@@ -183,43 +196,63 @@ serve(async (req) => {
         }
 
         // Verificar se a data é um dia de trabalho
-        const dateObj = new Date(date + 'T00:00:00');
+        const dateObj = new Date(date + 'T00:00:00-03:00');
         const dayOfWeek = dateObj.getDay();
         
+        console.log(`[getAvailableTimes] Dia da semana: ${dayOfWeek}, Dias de trabalho: ${barbershop.working_days}`);
+        
         if (!barbershop.working_days.includes(dayOfWeek)) {
+          console.log(`[getAvailableTimes] Dia ${dayOfWeek} não é dia de trabalho`);
           return new Response(
-            JSON.stringify({ available_times: [] }),
+            JSON.stringify({ available_times: [], message: 'Dia não é dia de trabalho' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
 
         // Buscar agendamentos existentes para este barbeiro nesta data
-        const startOfDay = `${date}T00:00:00`;
-        const endOfDay = `${date}T23:59:59`;
+        // IMPORTANTE: Usar timezone de Brasília (-03:00) e ignorar agendamentos cancelados
+        const startOfDay = `${date}T00:00:00-03:00`;
+        const endOfDay = `${date}T23:59:59-03:00`;
+
+        console.log(`[getAvailableTimes] Buscando agendamentos entre ${startOfDay} e ${endOfDay}`);
 
         const { data: existingAppointments, error: appointmentsError } = await supabase
           .from('appointments')
-          .select('appointment_date, service_id')
+          .select('appointment_date, service_id, status')
           .eq('barber_id', barber_id)
           .gte('appointment_date', startOfDay)
-          .lte('appointment_date', endOfDay);
+          .lte('appointment_date', endOfDay)
+          .neq('status', 'cancelled'); // IGNORAR AGENDAMENTOS CANCELADOS
 
         if (appointmentsError) throw appointmentsError;
 
+        console.log(`[getAvailableTimes] Agendamentos encontrados (excluindo cancelados):`, 
+          existingAppointments?.map(a => ({
+            date: a.appointment_date,
+            status: a.status
+          }))
+        );
+
         // Buscar duração dos serviços dos agendamentos existentes
         const serviceIds = [...new Set(existingAppointments?.map(a => a.service_id) || [])];
-        const { data: services, error: servicesError } = await supabase
-          .from('services')
-          .select('id, duration_minutes')
-          .in('id', serviceIds);
+        let serviceDurations = new Map<string, number>();
+        
+        if (serviceIds.length > 0) {
+          const { data: services, error: servicesError } = await supabase
+            .from('services')
+            .select('id, duration_minutes')
+            .in('id', serviceIds);
 
-        if (servicesError) throw servicesError;
+          if (servicesError) throw servicesError;
 
-        const serviceDurations = new Map(services?.map(s => [s.id, s.duration_minutes]) || []);
+          serviceDurations = new Map(services?.map(s => [s.id, s.duration_minutes]) || []);
+        }
 
         // Gerar slots de tempo
         const [openHour, openMinute] = barbershop.opening_time.split(':').map(Number);
         const [closeHour, closeMinute] = barbershop.closing_time.split(':').map(Number);
+        
+        console.log(`[getAvailableTimes] Horário de funcionamento: ${openHour}:${openMinute} - ${closeHour}:${closeMinute}`);
         
         const slots: string[] = [];
         let currentHour = openHour;
@@ -227,23 +260,30 @@ serve(async (req) => {
 
         while (currentHour < closeHour || (currentHour === closeHour && currentMinute < closeMinute)) {
           const timeString = `${String(currentHour).padStart(2, '0')}:${String(currentMinute).padStart(2, '0')}`;
-          const slotDateTime = new Date(`${date}T${timeString}:00`);
+          // Criar datetime com timezone de Brasília
+          const slotDateTime = new Date(`${date}T${timeString}:00-03:00`);
           
           // Verificar se este slot conflita com algum agendamento existente
           const hasConflict = existingAppointments?.some(appointment => {
             const appointmentStart = new Date(appointment.appointment_date);
             const appointmentDuration = serviceDurations.get(appointment.service_id) || 30;
             const appointmentEnd = new Date(appointmentStart.getTime() + appointmentDuration * 60000);
-            const slotEnd = new Date(slotDateTime.getTime() + service.duration_minutes * 60000);
+            const slotEnd = new Date(slotDateTime.getTime() + serviceDuration * 60000);
 
             // Verifica se há sobreposição
-            return slotDateTime < appointmentEnd && slotEnd > appointmentStart;
+            const overlaps = slotDateTime < appointmentEnd && slotEnd > appointmentStart;
+            
+            if (overlaps) {
+              console.log(`[getAvailableTimes] Conflito detectado: slot ${timeString} conflita com agendamento às ${appointmentStart.toISOString()}`);
+            }
+            
+            return overlaps;
           });
 
           if (!hasConflict) {
             // Verificar se o slot + duração do serviço cabe antes do horário de fechamento
-            const slotEndHour = Math.floor((currentHour * 60 + currentMinute + service.duration_minutes) / 60);
-            const slotEndMinute = (currentHour * 60 + currentMinute + service.duration_minutes) % 60;
+            const slotEndHour = Math.floor((currentHour * 60 + currentMinute + serviceDuration) / 60);
+            const slotEndMinute = (currentHour * 60 + currentMinute + serviceDuration) % 60;
             
             if (slotEndHour < closeHour || (slotEndHour === closeHour && slotEndMinute <= closeMinute)) {
               slots.push(timeString);
@@ -258,6 +298,8 @@ serve(async (req) => {
           }
         }
 
+        console.log(`[getAvailableTimes] Slots disponíveis:`, slots);
+
         return new Response(
           JSON.stringify({ available_times: slots }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -267,7 +309,7 @@ serve(async (req) => {
       case 'createAppointment': {
         const { barber_id, service_id, date, time, client_name, client_phone } = body;
         
-        console.log('Dados recebidos:', { barber_id, service_id, date, time, client_name, client_phone });
+        console.log('[createAppointment] Dados recebidos:', { barber_id, service_id, date, time, client_name, client_phone });
         
         if (!barber_id || !service_id || !date || !time || !client_name || !client_phone) {
           throw new Error('barber_id, service_id, date, time, client_name e client_phone são obrigatórios');
@@ -308,15 +350,15 @@ serve(async (req) => {
           .maybeSingle();
 
         if (clientSearchError) {
-          console.error('Erro ao buscar cliente:', clientSearchError);
+          console.error('[createAppointment] Erro ao buscar cliente:', clientSearchError);
           throw clientSearchError;
         }
 
         if (existingClient) {
-          console.log('Cliente existente encontrado:', existingClient.id);
+          console.log('[createAppointment] Cliente existente encontrado:', existingClient.id);
           client_id = existingClient.id;
         } else {
-          console.log('Criando novo cliente...');
+          console.log('[createAppointment] Criando novo cliente...');
           // Criar novo cliente
           const { data: newClient, error: clientCreateError } = await supabase
             .from('clients')
@@ -330,10 +372,10 @@ serve(async (req) => {
             .single();
 
           if (clientCreateError) {
-            console.error('Erro ao criar cliente:', clientCreateError);
+            console.error('[createAppointment] Erro ao criar cliente:', clientCreateError);
             throw clientCreateError;
           }
-          console.log('Cliente criado:', newClient.id);
+          console.log('[createAppointment] Cliente criado:', newClient.id);
           client_id = newClient.id;
         }
 
@@ -342,14 +384,29 @@ serve(async (req) => {
         const appointmentStart = new Date(appointmentDateTime);
         const appointmentEnd = new Date(appointmentStart.getTime() + service.duration_minutes * 60000);
 
+        console.log(`[createAppointment] Verificando conflitos para ${appointmentDateTime}`);
+
+        // IMPORTANTE: Usar timezone de Brasília e ignorar agendamentos cancelados
+        const startOfDay = `${date}T00:00:00-03:00`;
+        const endOfDay = `${date}T23:59:59-03:00`;
+
         const { data: conflicts, error: conflictError } = await supabase
           .from('appointments')
-          .select('id, appointment_date, service_id')
+          .select('id, appointment_date, service_id, status')
           .eq('barber_id', barber_id)
-          .gte('appointment_date', date + 'T00:00:00')
-          .lte('appointment_date', date + 'T23:59:59');
+          .gte('appointment_date', startOfDay)
+          .lte('appointment_date', endOfDay)
+          .neq('status', 'cancelled'); // IGNORAR AGENDAMENTOS CANCELADOS
 
         if (conflictError) throw conflictError;
+
+        console.log(`[createAppointment] Agendamentos existentes (excluindo cancelados):`, 
+          conflicts?.map(c => ({
+            id: c.id,
+            date: c.appointment_date,
+            status: c.status
+          }))
+        );
 
         // Buscar durações dos serviços dos conflitos
         if (conflicts && conflicts.length > 0) {
@@ -368,7 +425,13 @@ serve(async (req) => {
             const conflictDuration = serviceDurations.get(conflict.service_id) || 30;
             const conflictEnd = new Date(conflictStart.getTime() + conflictDuration * 60000);
 
-            return appointmentStart < conflictEnd && appointmentEnd > conflictStart;
+            const overlaps = appointmentStart < conflictEnd && appointmentEnd > conflictStart;
+            
+            if (overlaps) {
+              console.log(`[createAppointment] Conflito detectado com agendamento ${conflict.id} às ${conflict.appointment_date}`);
+            }
+            
+            return overlaps;
           });
 
           if (hasConflict) {
@@ -377,7 +440,7 @@ serve(async (req) => {
         }
 
         // Criar agendamento
-        console.log('Criando agendamento com client_id:', client_id);
+        console.log('[createAppointment] Criando agendamento com client_id:', client_id);
         const { data: appointment, error: appointmentError } = await supabase
           .from('appointments')
           .insert({
@@ -392,11 +455,11 @@ serve(async (req) => {
           .single();
 
         if (appointmentError) {
-          console.error('Erro ao criar agendamento:', appointmentError);
+          console.error('[createAppointment] Erro ao criar agendamento:', appointmentError);
           throw appointmentError;
         }
 
-        console.log('Agendamento criado:', appointment);
+        console.log('[createAppointment] Agendamento criado:', appointment);
 
         return new Response(
           JSON.stringify({ 
@@ -479,7 +542,7 @@ serve(async (req) => {
 
         if (updateError) throw updateError;
 
-        console.log('Agendamento cancelado:', appointment_id);
+        console.log('[cancelAppointment] Agendamento cancelado:', appointment_id);
 
         return new Response(
           JSON.stringify({ 
@@ -491,20 +554,17 @@ serve(async (req) => {
       }
 
       default:
-        throw new Error(`Ação não reconhecida: ${action}`);
+        throw new Error(`Ação não reconhecida: ${action || 'indefinida'}`);
     }
   } catch (error) {
-    console.error('Erro em n8n-appointments:', error);
+    console.error('n8n-appointments error:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
       JSON.stringify({ 
-        error: errorMessage,
-        details: String(error)
+        error: 'Solicitação inválida - verifique seus parâmetros.',
+        details: errorMessage 
       }),
-      { 
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
