@@ -350,7 +350,7 @@ const Clients = () => {
                 className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors gap-4"
               >
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-full bg-gradient-gold flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-salmon flex items-center justify-center flex-shrink-0">
                     <span className="text-lg font-bold text-sidebar-primary-foreground">
                       {client.full_name.charAt(0).toUpperCase()}
                     </span>

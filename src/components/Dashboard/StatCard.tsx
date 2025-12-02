@@ -25,7 +25,7 @@ export const StatCard = ({ title, value, icon: Icon, trend }: StatCardProps) => 
               </p>
             )}
           </div>
-          <div className="w-12 h-12 rounded-lg bg-gradient-gold flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg bg-gradient-salmon flex items-center justify-center">
             <Icon className="w-6 h-6 text-secondary-foreground" />
           </div>
         </div>
