@@ -116,7 +116,10 @@ export default function ClientBooking() {
 
     // Parse opening and closing times
     const openingTime = parse(barbershop.opening_time, "HH:mm:ss", selectedDate);
-    const closingTime = parse(barbershop.closing_time, "HH:mm:ss", selectedDate);
+    
+    // Saturday (6) closes at 19:00, other days use barbershop closing time
+    const closingTimeStr = dayOfWeek === 6 ? "19:00:00" : barbershop.closing_time;
+    const closingTime = parse(closingTimeStr, "HH:mm:ss", selectedDate);
 
     // Get existing appointments for this barber on this date
     const startOfDay = new Date(selectedDate);
