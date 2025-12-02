@@ -332,14 +332,14 @@ const Appointments = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <Card className="lg:col-span-1 shadow-elegant">
+        <Card className="lg:col-span-1 shadow-elegant min-w-fit">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CalendarIcon className="w-5 h-5" />
               Calendário
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="overflow-x-auto">
             <Calendar
               mode="single"
               selected={date}
