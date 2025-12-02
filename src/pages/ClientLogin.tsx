@@ -38,16 +38,13 @@ export default function ClientLogin() {
   const loadBarbershopInfo = async (id: string) => {
     try {
       const { data, error } = await supabase
-        .from("barbershops")
-        .select("name, logo_url")
-        .eq("id", id)
-        .maybeSingle();
+        .rpc("get_barbershop_public_info", { barbershop_id: id });
 
       if (error) throw error;
       
-      if (data) {
-        setBarbershopName(data.name);
-        setBarbershopLogo(data.logo_url);
+      if (data && data.length > 0) {
+        setBarbershopName(data[0].name);
+        setBarbershopLogo(data[0].logo_url);
       }
     } catch (error) {
       console.error("Erro ao carregar barbearia:", error);
