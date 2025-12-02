@@ -18,6 +18,81 @@ interface RequestBody {
   appointment_id?: string;
 }
 
+// Map Portuguese field names to English
+const fieldNameMap: Record<string, string> = {
+  'ação': 'action',
+  'Ação': 'action',
+  'barbeiro_id': 'barber_id',
+  'id_do_serviço': 'service_id',
+  'id_servico': 'service_id',
+  'data': 'date',
+  'horario': 'time',
+  'hora': 'time',
+  'nome_cliente': 'client_name',
+  'telefone_cliente': 'client_phone',
+  'telefone_do_cliente': 'client_phone',
+  'id_agendamento': 'appointment_id',
+};
+
+// Map Portuguese action names to English
+const actionMap: Record<string, string> = {
+  'obterinfo': 'getInfo',
+  'obterinformacoes': 'getInfo',
+  'obterhorariosdisnponiveis': 'getAvailableTimes',
+  'obterhorariosdisponiveis': 'getAvailableTimes',
+  'criaagendamento': 'createAppointment',
+  'criaragendamento': 'createAppointment',
+  'listaragendamentos': 'listAppointments',
+  'listarcompromissos': 'listAppointments',
+  'listadecompromissos': 'listAppointments',
+  'cancelaragendamento': 'cancelAppointment',
+  'cancelarcompromisso': 'cancelAppointment',
+};
+
+// Normalize the request body
+function normalizeBody(rawBody: Record<string, unknown>): RequestBody {
+  const normalized: Record<string, unknown> = {};
+  
+  for (const [key, value] of Object.entries(rawBody)) {
+    // Remove tabs, spaces, and special characters from key
+    const cleanKey = key.replace(/[\t\s]/g, '').toLowerCase();
+    
+    // Map Portuguese field names to English
+    let englishKey = cleanKey;
+    for (const [ptKey, enKey] of Object.entries(fieldNameMap)) {
+      if (cleanKey === ptKey.toLowerCase().replace(/[\t\s]/g, '')) {
+        englishKey = enKey;
+        break;
+      }
+    }
+    
+    // If no mapping found, use original key (cleaned)
+    if (englishKey === cleanKey) {
+      // Try to find partial match
+      const originalKey = key.replace(/[\t\s]/g, '');
+      englishKey = originalKey;
+    }
+    
+    normalized[englishKey] = value;
+  }
+  
+  // Normalize the action value
+  if (normalized.action && typeof normalized.action === 'string') {
+    const cleanAction = (normalized.action as string).toLowerCase().replace(/[\t\s]/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const mappedAction = actionMap[cleanAction];
+    if (mappedAction) {
+      normalized.action = mappedAction;
+    }
+  }
+  
+  // Normalize date format (convert 2025/12/02 to 2025-12-02)
+  if (normalized.date && typeof normalized.date === 'string') {
+    normalized.date = (normalized.date as string).replace(/\//g, '-');
+  }
+  
+  return normalized as unknown as RequestBody;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -28,8 +103,11 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const body: RequestBody = await req.json();
-    console.log('n8n-appointments request:', body);
+    const rawBody = await req.json();
+    console.log('n8n-appointments raw request:', rawBody);
+    
+    const body = normalizeBody(rawBody);
+    console.log('n8n-appointments normalized request:', body);
 
     const { action, barbershop_id } = body;
 
