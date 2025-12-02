@@ -351,7 +351,9 @@ export default function ClientBooking() {
                   onSelect={setSelectedDate}
                   disabled={(date) => {
                     const day = date.getDay();
-                    return !barbershop?.working_days?.includes(day) || date < new Date();
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    return !barbershop?.working_days?.includes(day) || date < today;
                   }}
                   locale={ptBR}
                   className="rounded-md border"
