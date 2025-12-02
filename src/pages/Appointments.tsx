@@ -352,8 +352,8 @@ const Appointments = () => {
         {/* Appointments List */}
         <Card className="shadow-elegant">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
+            <div className="flex flex-col gap-3">
+              <CardTitle className="flex items-center gap-2 whitespace-nowrap">
                 <Clock className="w-5 h-5" />
                 {startDate && endDate ? "Agendamentos do Período" : "Agendamentos do Dia"}
               </CardTitle>
