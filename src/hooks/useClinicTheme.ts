@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface BarbershopTheme {
+interface ClinicTheme {
   name: string;
   logo_url: string;
   primary_color: string;
   secondary_color: string;
 }
 
-export const useBarbershopTheme = (barbershopId?: string) => {
-  const [theme, setTheme] = useState<BarbershopTheme | null>(null);
+export const useClinicTheme = (clinicId?: string) => {
+  const [theme, setTheme] = useState<ClinicTheme | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadTheme = async () => {
-      if (!barbershopId) {
+      if (!clinicId) {
         setLoading(false);
         return;
       }
@@ -23,7 +23,7 @@ export const useBarbershopTheme = (barbershopId?: string) => {
         const { data, error } = await supabase
           .from("barbershops")
           .select("name, logo_url, primary_color, secondary_color")
-          .eq("id", barbershopId)
+          .eq("id", clinicId)
           .single();
 
         if (error) throw error;
@@ -41,20 +41,19 @@ export const useBarbershopTheme = (barbershopId?: string) => {
 
     loadTheme();
 
-    // Subscribe to realtime updates
-    if (barbershopId) {
+    if (clinicId) {
       const channel = supabase
-        .channel(`barbershop-theme-${barbershopId}`)
+        .channel(`clinic-theme-${clinicId}`)
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'barbershops',
-            filter: `id=eq.${barbershopId}`
+            filter: `id=eq.${clinicId}`
           },
           (payload) => {
-            const newData = payload.new as BarbershopTheme;
+            const newData = payload.new as ClinicTheme;
             setTheme(newData);
             applyTheme(newData);
           }
@@ -65,14 +64,13 @@ export const useBarbershopTheme = (barbershopId?: string) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [barbershopId]);
+  }, [clinicId]);
 
-  const applyTheme = (themeData: BarbershopTheme) => {
+  const applyTheme = (themeData: ClinicTheme) => {
     if (!themeData.primary_color && !themeData.secondary_color) return;
 
     const root = document.documentElement;
 
-    // Convert hex to HSL
     if (themeData.primary_color) {
       const primaryHSL = hexToHSL(themeData.primary_color);
       root.style.setProperty("--primary", primaryHSL);
@@ -85,10 +83,8 @@ export const useBarbershopTheme = (barbershopId?: string) => {
   };
 
   const hexToHSL = (hex: string): string => {
-    // Remove # if present
     hex = hex.replace("#", "");
 
-    // Convert to RGB
     const r = parseInt(hex.substring(0, 2), 16) / 255;
     const g = parseInt(hex.substring(2, 4), 16) / 255;
     const b = parseInt(hex.substring(4, 6), 16) / 255;
@@ -121,3 +117,6 @@ export const useBarbershopTheme = (barbershopId?: string) => {
 
   return { theme, loading };
 };
+
+// Backward compatibility export
+export const useBarbershopTheme = useClinicTheme;

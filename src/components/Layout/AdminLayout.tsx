@@ -3,16 +3,16 @@ import { Sidebar } from "@/components/Layout/Sidebar";
 import { Header } from "@/components/Layout/Header";
 import { MobileSidebar } from "@/components/Layout/MobileSidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useBarbershopTheme } from "@/hooks/useBarbershopTheme";
+import { useClinicTheme } from "@/hooks/useClinicTheme";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function AdminLayout() {
   const { user } = useAuth();
-  const [barbershopId, setBarbershopId] = useState<string>();
+  const [clinicId, setClinicId] = useState<string>();
 
   useEffect(() => {
-    const loadBarbershop = async () => {
+    const loadClinic = async () => {
       if (!user) return;
 
       const { data } = await supabase
@@ -22,14 +22,14 @@ export function AdminLayout() {
         .single();
 
       if (data) {
-        setBarbershopId(data.id);
+        setClinicId(data.id);
       }
     };
 
-    loadBarbershop();
+    loadClinic();
   }, [user]);
 
-  useBarbershopTheme(barbershopId);
+  useClinicTheme(clinicId);
 
   return (
     <div className="flex min-h-screen w-full bg-background">
