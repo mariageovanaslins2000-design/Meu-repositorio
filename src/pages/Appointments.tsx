@@ -138,15 +138,52 @@ const Appointments = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
+  const handleConfirmAppointment = async (appointmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ status: "confirmed" })
+        .eq("id", appointmentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Sucesso",
+        description: "Agendamento confirmado!",
+      });
+
+      // Recarregar dados
+      loadData();
+    } catch (error) {
+      console.error("Error confirming appointment:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível confirmar o agendamento",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (appointmentId: string, status: string) => {
+    if (status === "pending") {
+      return (
+        <Button
+          size="sm"
+          onClick={() => handleConfirmAppointment(appointmentId)}
+          className="bg-green-500 hover:bg-green-600 text-black font-medium"
+        >
+          Confirmar
+        </Button>
+      );
+    }
+
     const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" }> = {
-      pending: { label: "Pendente", variant: "secondary" },
       confirmed: { label: "Confirmado", variant: "default" },
       completed: { label: "Concluído", variant: "default" },
       cancelled: { label: "Cancelado", variant: "destructive" }
     };
     
-    const statusInfo = statusMap[status] || statusMap.pending;
+    const statusInfo = statusMap[status] || { label: status, variant: "secondary" as const };
     return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
   };
 
@@ -295,14 +332,20 @@ const Appointments = () => {
                 {filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border"
+                    className={cn(
+                      "flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-lg transition-colors border border-border",
+                      appointment.status === "confirmed" 
+                        ? "bg-green-100 hover:bg-green-200" 
+                        : "bg-muted/50 hover:bg-muted"
+                    )}
                   >
                     <div className="flex items-center gap-4 flex-1">
                       <div className="w-16 text-center flex-shrink-0">
                         <p className="text-lg font-bold">
                           {new Date(appointment.appointment_date).toLocaleTimeString('pt-BR', { 
                             hour: '2-digit', 
-                            minute: '2-digit' 
+                            minute: '2-digit',
+                            timeZone: 'America/Sao_Paulo'
                           })}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -324,7 +367,7 @@ const Appointments = () => {
                       </div>
                       
                       <div>
-                        {getStatusBadge(appointment.status)}
+                        {getStatusBadge(appointment.id, appointment.status)}
                       </div>
                     </div>
                   </div>
