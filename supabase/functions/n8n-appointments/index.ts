@@ -73,7 +73,9 @@ function normalizeBody(rawBody: Record<string, unknown>): RequestBody {
       englishKey = originalKey;
     }
     
-    normalized[englishKey] = value;
+    // Trim string values to remove leading/trailing spaces
+    const cleanValue = typeof value === 'string' ? value.trim() : value;
+    normalized[englishKey] = cleanValue;
   }
   
   // Normalize the action value
