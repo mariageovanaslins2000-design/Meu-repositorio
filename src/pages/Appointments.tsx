@@ -142,6 +142,7 @@ const Appointments = () => {
           id,
           appointment_date,
           status,
+          client_name,
           barbers (id, name),
           clients (id, name),
           services (name, duration_minutes, price)
@@ -153,7 +154,7 @@ const Appointments = () => {
 
       if (error) throw error;
 
-      // Map to expected format
+      // Map to expected format - prioriza client_name do agendamento, fallback para clients.name
       const mappedAppointments: Appointment[] = (appointmentsData || []).map((apt: any) => ({
         id: apt.id,
         appointment_date: apt.appointment_date,
@@ -163,7 +164,7 @@ const Appointments = () => {
           name: apt.barbers.name
         },
         client: {
-          full_name: apt.clients.name
+          full_name: apt.client_name || apt.clients.name
         },
         service: {
           name: apt.services.name,

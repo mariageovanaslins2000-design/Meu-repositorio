@@ -240,6 +240,7 @@ export default function ClientBooking() {
         appointment_date: appointmentDateTimeString,
         notes,
         status: "pending",
+        client_name: clientData.name,
       });
 
       if (error) throw error;
