@@ -244,24 +244,29 @@ export default function ClientBooking() {
 
       if (error) throw error;
 
-      // Enviar lembrete via webhook imediatamente
-      try {
-        await fetch('https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            nome: clientData.name,
-            telefone: clientData.phone,
-            horario: `${day}/${month}/${year} às ${hour}:${minute}`,
-          }),
-        });
-        console.log('Lembrete enviado com sucesso');
-      } catch (webhookError) {
-        console.error('Erro ao enviar lembrete:', webhookError);
-        // Não bloqueia o fluxo se falhar
-      }
+      // Agendar envio do lembrete para 5 minutos depois
+      const reminderData = {
+        nome: clientData.name,
+        telefone: clientData.phone,
+        horario: `${day}/${month}/${year} às ${hour}:${minute}`,
+      };
+      
+      setTimeout(async () => {
+        try {
+          await fetch('https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reminderData),
+          });
+          console.log('Lembrete enviado após 5 minutos');
+        } catch (webhookError) {
+          console.error('Erro ao enviar lembrete:', webhookError);
+        }
+      }, 300000); // 5 minutos em milissegundos
+      
+      console.log('Lembrete agendado para 5 minutos');
 
       toast.success("Agendamento realizado com sucesso!");
       navigate("/client/appointments");

@@ -502,25 +502,40 @@ serve(async (req) => {
 
         console.log('[createAppointment] Agendamento criado:', appointment);
 
-        // Enviar lembrete via webhook imediatamente
-        try {
-          const [year, month, day] = date.split('-');
-          await fetch('https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              nome: client_name,
-              telefone: client_phone,
-              horario: `${day}/${month}/${year} às ${time}`,
-            }),
-          });
-          console.log('[createAppointment] Lembrete enviado com sucesso');
-        } catch (webhookError) {
-          console.error('[createAppointment] Erro ao enviar lembrete:', webhookError);
-          // Não bloqueia o fluxo se falhar
-        }
+        // Agendar envio do lembrete para 5 minutos depois (em background)
+        const reminderData = {
+          client_name,
+          client_phone,
+          date,
+          time,
+        };
+        
+        const sendDelayedReminder = async () => {
+          try {
+            // Esperar 5 minutos (300000 ms)
+            await new Promise(resolve => setTimeout(resolve, 300000));
+            
+            const [year, month, day] = reminderData.date.split('-');
+            await fetch('https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                nome: reminderData.client_name,
+                telefone: reminderData.client_phone,
+                horario: `${day}/${month}/${year} às ${reminderData.time}`,
+              }),
+            });
+            console.log('[createAppointment] Lembrete enviado após 5 minutos');
+          } catch (webhookError) {
+            console.error('[createAppointment] Erro ao enviar lembrete:', webhookError);
+          }
+        };
+        
+        // @ts-ignore - EdgeRuntime.waitUntil é disponível em Supabase Edge Functions
+        EdgeRuntime.waitUntil(sendDelayedReminder());
+        console.log('[createAppointment] Lembrete agendado para 5 minutos');
 
         return new Response(
           JSON.stringify({ 
