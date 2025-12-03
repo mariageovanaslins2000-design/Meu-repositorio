@@ -400,18 +400,6 @@ serve(async (req) => {
         if (existingClient) {
           console.log('[createAppointment] Cliente existente encontrado:', existingClient.id);
           client_id = existingClient.id;
-          
-          // Sempre atualizar o nome do cliente com o valor que veio do n8n
-          const { error: updateError } = await supabase
-            .from('clients')
-            .update({ name: client_name })
-            .eq('id', existingClient.id);
-          
-          if (updateError) {
-            console.error('[createAppointment] Erro ao atualizar nome do cliente:', updateError);
-          } else {
-            console.log('[createAppointment] Nome do cliente atualizado para:', client_name);
-          }
         } else {
           console.log('[createAppointment] Criando novo cliente...');
           // Criar novo cliente
@@ -492,7 +480,7 @@ serve(async (req) => {
           }
         }
 
-        // Criar agendamento
+        // Criar agendamento COM o nome do cliente específico para este agendamento
         console.log('[createAppointment] Criando agendamento com client_id:', client_id);
         const { data: appointment, error: appointmentError } = await supabase
           .from('appointments')
@@ -503,6 +491,7 @@ serve(async (req) => {
             service_id,
             appointment_date: appointmentDateTime,
             status: 'pending',
+            client_name: client_name,
           })
           .select('*')
           .single();
