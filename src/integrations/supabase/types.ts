@@ -529,6 +529,7 @@ export type Database = {
           id: string
           logo_url: string
           name: string
+          primary_color: string
         }[]
       }
       get_user_barbershop_id: { Args: { user_id: string }; Returns: string }
