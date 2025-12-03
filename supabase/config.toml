@@ -1,1 +1,7 @@
 project_id = "fimdhqjzdyktzdijfoub"
+
+[functions.n8n-appointments]
+verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false
