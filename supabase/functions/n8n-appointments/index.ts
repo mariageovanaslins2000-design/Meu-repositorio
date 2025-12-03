@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Helper: Converter datetime UTC para formatos de Brasília
+function convertToBrasilia(utcDateStr: string) {
+  const utcDate = new Date(utcDateStr);
+  // Subtrair 3 horas para converter de UTC para Brasília
+  const brasiliaMs = utcDate.getTime() - (3 * 60 * 60 * 1000);
+  const brasiliaDate = new Date(brasiliaMs);
+  
+  const day = String(brasiliaDate.getUTCDate()).padStart(2, '0');
+  const month = String(brasiliaDate.getUTCMonth() + 1).padStart(2, '0');
+  const year = brasiliaDate.getUTCFullYear();
+  const hours = String(brasiliaDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(brasiliaDate.getUTCMinutes()).padStart(2, '0');
+  
+  return {
+    original_utc: utcDateStr,
+    date: `${year}-${month}-${day}`,
+    time: `${hours}:${minutes}`,
+    formatted: `${day}/${month}/${year} às ${hours}:${minutes}`,
+    datetime_brasilia: `${year}-${month}-${day}T${hours}:${minutes}:00-03:00`
+  };
+}
+
 interface RequestBody {
   action: 'getInfo' | 'getAvailableTimes' | 'createAppointment' | 'listAppointments' | 'cancelAppointment';
   barbershop_id: string;
@@ -558,10 +580,19 @@ serve(async (req) => {
         EdgeRuntime.waitUntil(sendDelayedReminder());
         console.log('[createAppointment] Lembrete agendado para 5 minutos');
 
+        // Converter horário do agendamento criado para Brasília
+        const brasiliaTime = convertToBrasilia(appointment.appointment_date);
+        
         return new Response(
           JSON.stringify({ 
             success: true, 
-            appointment,
+            appointment: {
+              ...appointment,
+              appointment_date_utc: appointment.appointment_date,
+              appointment_date: brasiliaTime.formatted,
+              appointment_time: brasiliaTime.time,
+              appointment_date_iso: brasiliaTime.date
+            },
             message: 'Agendamento criado com sucesso'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -606,26 +637,17 @@ serve(async (req) => {
 
         if (appointmentsError) throw appointmentsError;
 
-        // Converter horários UTC para Brasília antes de retornar
+        // Converter horários UTC para Brasília usando helper
         const appointmentsWithBrasiliaTime = (appointments || []).map(apt => {
-          const utcDate = new Date(apt.appointment_date);
-          
-          // Converter para Brasília (UTC-3)
-          const brasiliaDate = new Date(utcDate.getTime() - (3 * 60 * 60 * 1000));
-          
-          // Formato legível: "03/12/2025 às 17:00"
-          const day = String(brasiliaDate.getUTCDate()).padStart(2, '0');
-          const month = String(brasiliaDate.getUTCMonth() + 1).padStart(2, '0');
-          const year = brasiliaDate.getUTCFullYear();
-          const hours = String(brasiliaDate.getUTCHours()).padStart(2, '0');
-          const minutes = String(brasiliaDate.getUTCMinutes()).padStart(2, '0');
+          const brasilia = convertToBrasilia(apt.appointment_date);
           
           return {
             ...apt,
             appointment_date_utc: apt.appointment_date,
-            appointment_date_brasilia: `${day}/${month}/${year} às ${hours}:${minutes}`,
-            appointment_time: `${hours}:${minutes}`,
-            appointment_date_formatted: `${day}/${month}/${year}`
+            appointment_date: brasilia.formatted,
+            appointment_date_brasilia: brasilia.formatted,
+            appointment_time: brasilia.time,
+            appointment_date_formatted: brasilia.date.split('-').reverse().join('/')
           };
         });
 
