@@ -92,6 +92,26 @@ function normalizeBody(rawBody: Record<string, unknown>): RequestBody {
     normalized.date = (normalized.date as string).replace(/\//g, '-');
   }
   
+  // Se time estiver no formato ISO (contém 'T'), extrair data e hora
+  if (normalized.time && typeof normalized.time === 'string') {
+    const timeStr = normalized.time as string;
+    
+    // Verificar se é formato ISO: "2025-12-04T09:30:00" ou "2025-12-04T09:30:00.000Z"
+    if (timeStr.includes('T')) {
+      const [datePart, timePart] = timeStr.split('T');
+      
+      // Se date estiver vazio, usar a data do time
+      if (!normalized.date || (normalized.date as string).trim() === '') {
+        normalized.date = datePart;
+      }
+      
+      // Extrair apenas HH:MM do time (remover segundos e timezone)
+      normalized.time = timePart.substring(0, 5); // "09:30"
+      
+      console.log(`[normalizeBody] ISO time detectado - date: ${normalized.date}, time: ${normalized.time}`);
+    }
+  }
+  
   return normalized as unknown as RequestBody;
 }
 
