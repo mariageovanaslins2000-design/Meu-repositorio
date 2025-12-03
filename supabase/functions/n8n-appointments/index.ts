@@ -3,11 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.75.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-api-key',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// API Key for N8N authentication
-const N8N_API_KEY = Deno.env.get('N8N_API_KEY');
 
 interface RequestBody {
   action: 'getInfo' | 'getAvailableTimes' | 'createAppointment' | 'listAppointments' | 'cancelAppointment';
@@ -101,16 +98,6 @@ function normalizeBody(rawBody: Record<string, unknown>): RequestBody {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
-  }
-
-  // Validate API Key
-  const providedApiKey = req.headers.get('x-api-key');
-  if (!N8N_API_KEY || providedApiKey !== N8N_API_KEY) {
-    console.error('n8n-appointments: Unauthorized - Invalid or missing API key');
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized - Invalid or missing API key' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
   }
 
   try {
