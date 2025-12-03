@@ -400,6 +400,18 @@ serve(async (req) => {
         if (existingClient) {
           console.log('[createAppointment] Cliente existente encontrado:', existingClient.id);
           client_id = existingClient.id;
+          
+          // Sempre atualizar o nome do cliente com o valor que veio do n8n
+          const { error: updateError } = await supabase
+            .from('clients')
+            .update({ name: client_name })
+            .eq('id', existingClient.id);
+          
+          if (updateError) {
+            console.error('[createAppointment] Erro ao atualizar nome do cliente:', updateError);
+          } else {
+            console.log('[createAppointment] Nome do cliente atualizado para:', client_name);
+          }
         } else {
           console.log('[createAppointment] Criando novo cliente...');
           // Criar novo cliente
