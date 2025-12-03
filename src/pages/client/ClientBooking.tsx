@@ -208,6 +208,25 @@ export default function ClientBooking() {
       const minute = String(appointmentDateTime.getMinutes()).padStart(2, '0');
       const appointmentDateTimeString = `${year}-${month}-${day}T${hour}:${minute}:00-03:00`;
 
+      // Verificar se já existe agendamento no mesmo horário (não cancelado)
+      const { data: conflictingAppointment } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("barber_id", selectedBarber.id)
+        .eq("appointment_date", appointmentDateTimeString)
+        .neq("status", "cancelled")
+        .maybeSingle();
+
+      if (conflictingAppointment) {
+        toast.error("Este horário já foi reservado. Por favor, escolha outro horário.");
+        setSelectedTime("");
+        setStep(3);
+        generateAvailableTimes();
+        setLoading(false);
+        setIsSubmitting(false);
+        return;
+      }
+
       const { error } = await supabase.from("appointments").insert({
         barbershop_id: barbershop.id,
         barber_id: selectedBarber.id,
@@ -321,10 +340,18 @@ export default function ClientBooking() {
                     setStep(3);
                   }}
                 >
-                  <CardHeader className="text-center">
-                    <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center text-2xl font-bold">
-                      {barber.name.charAt(0)}
-                    </div>
+                <CardHeader className="text-center">
+                    {barber.photo_url ? (
+                      <img 
+                        src={barber.photo_url} 
+                        alt={barber.name}
+                        className="w-20 h-20 mx-auto mb-2 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center text-2xl font-bold">
+                        {barber.name.charAt(0)}
+                      </div>
+                    )}
                     <CardTitle>{barber.name}</CardTitle>
                     {barber.specialty && <CardDescription>{barber.specialty}</CardDescription>}
                   </CardHeader>
