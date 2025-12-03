@@ -209,11 +209,16 @@ export default function ClientBooking() {
       const appointmentDateTimeString = `${year}-${month}-${day}T${hour}:${minute}:00-03:00`;
 
       // Verificar se já existe agendamento no mesmo horário (não cancelado)
+      // Usar intervalo de 1 minuto em UTC para garantir comparação correta de timezone
+      const startRange = appointmentDateTime.toISOString();
+      const endRange = addMinutes(appointmentDateTime, 1).toISOString();
+
       const { data: conflictingAppointment } = await supabase
         .from("appointments")
         .select("id")
         .eq("barber_id", selectedBarber.id)
-        .eq("appointment_date", appointmentDateTimeString)
+        .gte("appointment_date", startRange)
+        .lt("appointment_date", endRange)
         .neq("status", "cancelled")
         .maybeSingle();
 
