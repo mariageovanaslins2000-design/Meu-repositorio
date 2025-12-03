@@ -586,8 +586,31 @@ serve(async (req) => {
 
         if (appointmentsError) throw appointmentsError;
 
+        // Converter horários UTC para Brasília antes de retornar
+        const appointmentsWithBrasiliaTime = (appointments || []).map(apt => {
+          const utcDate = new Date(apt.appointment_date);
+          
+          // Converter para Brasília (UTC-3)
+          const brasiliaDate = new Date(utcDate.getTime() - (3 * 60 * 60 * 1000));
+          
+          // Formato legível: "03/12/2025 às 17:00"
+          const day = String(brasiliaDate.getUTCDate()).padStart(2, '0');
+          const month = String(brasiliaDate.getUTCMonth() + 1).padStart(2, '0');
+          const year = brasiliaDate.getUTCFullYear();
+          const hours = String(brasiliaDate.getUTCHours()).padStart(2, '0');
+          const minutes = String(brasiliaDate.getUTCMinutes()).padStart(2, '0');
+          
+          return {
+            ...apt,
+            appointment_date_utc: apt.appointment_date,
+            appointment_date_brasilia: `${day}/${month}/${year} às ${hours}:${minutes}`,
+            appointment_time: `${hours}:${minutes}`,
+            appointment_date_formatted: `${day}/${month}/${year}`
+          };
+        });
+
         return new Response(
-          JSON.stringify({ appointments: appointments || [] }),
+          JSON.stringify({ appointments: appointmentsWithBrasiliaTime }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
