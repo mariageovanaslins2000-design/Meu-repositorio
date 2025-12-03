@@ -502,6 +502,26 @@ serve(async (req) => {
 
         console.log('[createAppointment] Agendamento criado:', appointment);
 
+        // Enviar lembrete via webhook imediatamente
+        try {
+          const [year, month, day] = date.split('-');
+          await fetch('https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              nome: client_name,
+              telefone: client_phone,
+              horario: `${day}/${month}/${year} às ${time}`,
+            }),
+          });
+          console.log('[createAppointment] Lembrete enviado com sucesso');
+        } catch (webhookError) {
+          console.error('[createAppointment] Erro ao enviar lembrete:', webhookError);
+          // Não bloqueia o fluxo se falhar
+        }
+
         return new Response(
           JSON.stringify({ 
             success: true, 
