@@ -328,7 +328,14 @@ serve(async (req) => {
             const slotEndMinute = (currentHour * 60 + currentMinute + serviceDuration) % 60;
             
             if (slotEndHour < closeHour || (slotEndHour === closeHour && slotEndMinute <= closeMinute)) {
-              slots.push(timeString);
+              // NOVO: Verificar se o horário ainda não passou
+              const now = new Date();
+              
+              if (slotDateTime > now) {
+                slots.push(timeString);
+              } else {
+                console.log(`[getAvailableTimes] Slot ${timeString} ignorado - horário já passou`);
+              }
             }
           }
 
