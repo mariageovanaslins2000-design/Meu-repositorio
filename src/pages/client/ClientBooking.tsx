@@ -182,10 +182,10 @@ export default function ClientBooking() {
     setLoading(true);
 
     try {
-      // Buscar o client_id correto da tabela clients
+      // Buscar o client_id, nome e telefone da tabela clients
       const { data: clientData, error: clientError } = await supabase
         .from("clients")
-        .select("id")
+        .select("id, name, phone")
         .eq("profile_id", user.id)
         .eq("barbershop_id", barbershop.id)
         .maybeSingle();
@@ -243,6 +243,25 @@ export default function ClientBooking() {
       });
 
       if (error) throw error;
+
+      // Enviar lembrete via webhook imediatamente
+      try {
+        await fetch('https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nome: clientData.name,
+            telefone: clientData.phone,
+            horario: `${day}/${month}/${year} às ${hour}:${minute}`,
+          }),
+        });
+        console.log('Lembrete enviado com sucesso');
+      } catch (webhookError) {
+        console.error('Erro ao enviar lembrete:', webhookError);
+        // Não bloqueia o fluxo se falhar
+      }
 
       toast.success("Agendamento realizado com sucesso!");
       navigate("/client/appointments");
