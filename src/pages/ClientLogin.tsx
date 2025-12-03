@@ -14,12 +14,45 @@ const signInSchema = z.object({
   password: z.string().min(1, "Senha é obrigatória"),
 });
 
+const hexToHSL = (hex: string): string => {
+  hex = hex.replace("#", "");
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+    switch (max) {
+      case r:
+        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+        break;
+      case g:
+        h = ((b - r) / d + 2) / 6;
+        break;
+      case b:
+        h = ((r - g) / d + 4) / 6;
+        break;
+    }
+  }
+
+  return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+};
+
 export default function ClientLogin() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [barbershopLogo, setBarbershopLogo] = useState<string | null>(null);
   const [barbershopName, setBarbershopName] = useState<string>("");
+  const [primaryColor, setPrimaryColor] = useState<string | null>(null);
 
   const [signInData, setSignInData] = useState({
     email: "",
@@ -35,6 +68,19 @@ export default function ClientLogin() {
     }
   }, [searchParams]);
 
+  // Apply custom theme when primary color is loaded
+  useEffect(() => {
+    if (primaryColor) {
+      const hsl = hexToHSL(primaryColor);
+      document.documentElement.style.setProperty("--primary", hsl);
+    }
+
+    return () => {
+      // Reset to default on unmount
+      document.documentElement.style.removeProperty("--primary");
+    };
+  }, [primaryColor]);
+
   const loadBarbershopInfo = async (id: string) => {
     try {
       const { data, error } = await supabase
@@ -45,9 +91,12 @@ export default function ClientLogin() {
       if (data && data.length > 0) {
         setBarbershopName(data[0].name);
         setBarbershopLogo(data[0].logo_url);
+        if (data[0].primary_color) {
+          setPrimaryColor(data[0].primary_color);
+        }
       }
     } catch (error) {
-      console.error("Erro ao carregar barbearia:", error);
+      console.error("Erro ao carregar clínica:", error);
     }
   };
 
@@ -157,7 +206,7 @@ export default function ClientLogin() {
 
             <div className="text-center mt-4">
               <p className="text-sm text-muted-foreground">
-                Não tem conta? Solicite o link de cadastro à sua barbearia.
+                Não tem conta? Solicite o link de cadastro à sua clínica.
               </p>
             </div>
           </form>
