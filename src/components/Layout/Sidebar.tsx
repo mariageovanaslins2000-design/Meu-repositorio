@@ -89,9 +89,9 @@ export const Sidebar = () => {
 
       {/* User Profile */}
       <div className="p-4 border-t border-sidebar-border space-y-2">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent">
-          <div className="w-10 h-10 rounded-full bg-gradient-salmon flex items-center justify-center">
-            <span className="text-sm font-bold text-sidebar-primary-foreground">
+        <div className="flex items-center gap-3 p-3 rounded-lg">
+          <div className="w-10 h-10 rounded-full bg-sidebar-border flex items-center justify-center">
+            <span className="text-sm font-bold text-sidebar-foreground">
               {clinicName.charAt(0).toUpperCase()}
             </span>
           </div>
