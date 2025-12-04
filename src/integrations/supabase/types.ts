@@ -21,9 +21,11 @@ export type Database = {
           barbershop_id: string
           client_id: string
           client_name: string | null
+          confirmation_24h_sent_at: string | null
           created_at: string
           id: string
           notes: string | null
+          notification_3h_sent_at: string | null
           paid_amount: number | null
           service_id: string
           status: string
@@ -35,9 +37,11 @@ export type Database = {
           barbershop_id: string
           client_id: string
           client_name?: string | null
+          confirmation_24h_sent_at?: string | null
           created_at?: string
           id?: string
           notes?: string | null
+          notification_3h_sent_at?: string | null
           paid_amount?: number | null
           service_id: string
           status?: string
@@ -49,9 +53,11 @@ export type Database = {
           barbershop_id?: string
           client_id?: string
           client_name?: string | null
+          confirmation_24h_sent_at?: string | null
           created_at?: string
           id?: string
           notes?: string | null
+          notification_3h_sent_at?: string | null
           paid_amount?: number | null
           service_id?: string
           status?: string
