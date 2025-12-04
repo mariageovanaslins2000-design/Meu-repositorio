@@ -29,7 +29,7 @@ function convertToBrasilia(utcDateStr: string) {
 }
 
 interface RequestBody {
-  action: 'getInfo' | 'getAvailableTimes' | 'createAppointment' | 'listAppointments' | 'cancelAppointment';
+  action: 'getInfo' | 'getAvailableTimes' | 'createAppointment' | 'listAppointments' | 'cancelAppointment' | 'confirmAppointment';
   barbershop_id: string;
   barber_id?: string;
   service_id?: string;
@@ -69,6 +69,8 @@ const actionMap: Record<string, string> = {
   'listadecompromissos': 'listAppointments',
   'cancelaragendamento': 'cancelAppointment',
   'cancelarcompromisso': 'cancelAppointment',
+  'confirmaragendamento': 'confirmAppointment',
+  'confirmar': 'confirmAppointment',
 };
 
 // Normalize the request body
@@ -697,6 +699,102 @@ serve(async (req) => {
           JSON.stringify({ 
             success: true, 
             message: 'Agendamento cancelado com sucesso'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'confirmAppointment': {
+        const { appointment_id, client_phone, date, time } = body;
+        
+        console.log('[confirmAppointment] Dados recebidos:', { appointment_id, client_phone, date, time });
+
+        let appointmentToConfirm;
+
+        if (appointment_id) {
+          // Buscar por appointment_id
+          const { data, error } = await supabase
+            .from('appointments')
+            .select('*')
+            .eq('id', appointment_id)
+            .eq('barbershop_id', barbershop_id)
+            .single();
+
+          if (error || !data) {
+            throw new Error('Agendamento não encontrado');
+          }
+          appointmentToConfirm = data;
+        } else if (client_phone && date && time) {
+          // Buscar por client_phone + date + time
+          const appointmentDateTime = `${date}T${time}:00-03:00`;
+          
+          // Primeiro buscar o cliente pelo telefone
+          const { data: client, error: clientError } = await supabase
+            .from('clients')
+            .select('id')
+            .eq('barbershop_id', barbershop_id)
+            .eq('phone', client_phone)
+            .maybeSingle();
+
+          if (clientError) throw clientError;
+          
+          if (!client) {
+            throw new Error('Cliente não encontrado com este telefone');
+          }
+
+          // Buscar agendamento do cliente nesta data/hora
+          const { data, error } = await supabase
+            .from('appointments')
+            .select('*')
+            .eq('client_id', client.id)
+            .eq('barbershop_id', barbershop_id)
+            .eq('appointment_date', appointmentDateTime)
+            .single();
+
+          if (error || !data) {
+            throw new Error('Agendamento não encontrado para este cliente nesta data/hora');
+          }
+          appointmentToConfirm = data;
+        } else {
+          throw new Error('appointment_id OU (client_phone + date + time) são obrigatórios');
+        }
+
+        // Verificar se já não está confirmado
+        if (appointmentToConfirm.status === 'confirmed') {
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: 'Agendamento já estava confirmado',
+              appointment: appointmentToConfirm
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Atualizar status para confirmed
+        const { data: updatedAppointment, error: updateError } = await supabase
+          .from('appointments')
+          .update({ status: 'confirmed' })
+          .eq('id', appointmentToConfirm.id)
+          .select('*')
+          .single();
+
+        if (updateError) throw updateError;
+
+        console.log('[confirmAppointment] Agendamento confirmado:', appointmentToConfirm.id);
+
+        // Converter horário para Brasília
+        const brasiliaTime = convertToBrasilia(updatedAppointment.appointment_date);
+
+        return new Response(
+          JSON.stringify({ 
+            success: true, 
+            message: 'Agendamento confirmado com sucesso',
+            appointment: {
+              ...updatedAppointment,
+              appointment_date_formatted: brasiliaTime.formatted,
+              appointment_time: brasiliaTime.time,
+            }
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
