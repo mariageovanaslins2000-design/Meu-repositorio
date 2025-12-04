@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const WEBHOOK_URL = 'https://n8n-n8n.knceh1.easypanel.host/webhook/notificacao';
+const WEBHOOK_URL = 'https://n8n-n8n.knceh1.easypanel.host/webhook/lembrete';
 
 // Helper: Converter datetime UTC para formatos de Brasília
 function convertToBrasilia(utcDateStr: string) {
