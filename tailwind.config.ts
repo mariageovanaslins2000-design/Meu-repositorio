@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Playfair Display', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -60,7 +64,7 @@ export default {
       },
       backgroundImage: {
         'gradient-premium': 'var(--gradient-premium)',
-        'gradient-salmon': 'var(--gradient-salmon)',
+        'gradient-clinic': 'var(--gradient-clinic)',
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',

@@ -114,6 +114,22 @@ export default function ClientBooking() {
       return;
     }
 
+    // VERIFICAR SE O DIA ESTÁ BLOQUEADO PARA ESTE PROFISSIONAL
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const { data: blockedDay } = await supabase
+      .from("blocked_days")
+      .select("id, reason")
+      .eq("barbershop_id", barbershop.id)
+      .eq("barber_id", selectedBarber.id)
+      .eq("blocked_date", dateStr)
+      .maybeSingle();
+
+    if (blockedDay) {
+      setAvailableTimes([]);
+      toast.info(`Profissional indisponível neste dia${blockedDay.reason ? `: ${blockedDay.reason}` : ''}`);
+      return;
+    }
+
     // Parse opening and closing times
     const openingTime = parse(barbershop.opening_time, "HH:mm:ss", selectedDate);
     
