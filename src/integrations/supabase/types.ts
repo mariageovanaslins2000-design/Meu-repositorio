@@ -192,6 +192,51 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_days: {
+        Row: {
+          barber_id: string
+          barbershop_id: string
+          blocked_date: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          barber_id: string
+          barbershop_id: string
+          blocked_date: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          barber_id?: string
+          barbershop_id?: string
+          blocked_date?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_days_barber_id_fkey"
+            columns: ["barber_id"]
+            isOneToOne: false
+            referencedRelation: "barbers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_days_barbershop_id_fkey"
+            columns: ["barbershop_id"]
+            isOneToOne: false
+            referencedRelation: "barbershops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_barbershop: {
         Row: {
           barbershop_id: string

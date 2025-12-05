@@ -239,6 +239,28 @@ serve(async (req) => {
           throw new Error('Barbearia não encontrada');
         }
 
+        // VERIFICAR SE O DIA ESTÁ BLOQUEADO PARA ESTE PROFISSIONAL
+        const { data: blockedDay, error: blockedError } = await supabase
+          .from('blocked_days')
+          .select('id, reason')
+          .eq('barbershop_id', barbershop_id)
+          .eq('barber_id', barber_id)
+          .eq('blocked_date', date)
+          .maybeSingle();
+
+        if (blockedDay) {
+          console.log(`[getAvailableTimes] Dia ${date} bloqueado para barbeiro ${barber_id}: ${blockedDay.reason || 'sem motivo'}`);
+          return new Response(
+            JSON.stringify({ 
+              available_times: [], 
+              message: 'Todos os horários estão ocupados',
+              blocked: true,
+              reason: blockedDay.reason
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
         // Verificar se a data é um dia de trabalho
         const dateObj = new Date(date + 'T00:00:00-03:00');
         const dayOfWeek = dateObj.getDay();

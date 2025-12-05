@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar as CalendarIcon, Clock, X, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, X, Trash2, Lock, Unlock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -37,6 +47,14 @@ type Barber = {
   name: string;
 };
 
+type BlockedDay = {
+  id: string;
+  barber_id: string;
+  barber_name?: string;
+  blocked_date: string;
+  reason: string | null;
+};
+
 const Appointments = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -48,6 +66,14 @@ const Appointments = () => {
   const [appointmentToDelete, setAppointmentToDelete] = useState<Appointment | null>(null);
   const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
+  
+  // Block day state
+  const [showBlockModal, setShowBlockModal] = useState(false);
+  const [blockBarber, setBlockBarber] = useState<string>("");
+  const [blockReason, setBlockReason] = useState("");
+  const [blocking, setBlocking] = useState(false);
+  const [blockedDays, setBlockedDays] = useState<BlockedDay[]>([]);
+  const [barbershopId, setBarbershopId] = useState<string | null>(null);
 
   const handleDeleteAppointment = async () => {
     if (!appointmentToDelete) return;
@@ -103,6 +129,8 @@ const Appointments = () => {
         .single();
 
       if (!barbershop) return;
+      
+      setBarbershopId(barbershop.id);
 
       // Load barbers
       const { data: barbersData } = await supabase
@@ -112,6 +140,22 @@ const Appointments = () => {
         .eq("is_active", true);
 
       setBarbers(barbersData || []);
+
+      // Load blocked days for the selected date
+      if (date) {
+        const dateStr = format(date, "yyyy-MM-dd");
+        const { data: blockedData } = await supabase
+          .from("blocked_days")
+          .select("id, barber_id, blocked_date, reason")
+          .eq("barbershop_id", barbershop.id)
+          .eq("blocked_date", dateStr);
+
+        const blockedWithNames = (blockedData || []).map(b => ({
+          ...b,
+          barber_name: barbersData?.find(barber => barber.id === b.barber_id)?.name || "Profissional"
+        }));
+        setBlockedDays(blockedWithNames);
+      }
 
       // Determine date range
       let startTime: string, endTime: string;
@@ -293,7 +337,7 @@ const Appointments = () => {
         <Button
           size="sm"
           onClick={() => handleConfirmAppointment(appointmentId)}
-          className="bg-green-500 hover:bg-green-600 text-black font-medium"
+          className="bg-green-500 hover:bg-green-600 text-white font-medium"
         >
           Confirmar
         </Button>
@@ -320,12 +364,85 @@ const Appointments = () => {
     setDate(new Date());
   };
 
+  const handleBlockDay = async () => {
+    if (!blockBarber || !date || !barbershopId) {
+      toast({
+        title: "Erro",
+        description: "Selecione um profissional para bloquear",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setBlocking(true);
+    try {
+      const { error } = await supabase.from("blocked_days").insert({
+        barbershop_id: barbershopId,
+        barber_id: blockBarber,
+        blocked_date: format(date, "yyyy-MM-dd"),
+        reason: blockReason || null,
+        created_by: user?.id,
+      });
+
+      if (error) {
+        if (error.code === "23505") {
+          throw new Error("Este dia já está bloqueado para este profissional");
+        }
+        throw error;
+      }
+
+      toast({
+        title: "Dia bloqueado",
+        description: `O dia ${format(date, "dd/MM/yyyy")} foi bloqueado com sucesso.`,
+      });
+      
+      setShowBlockModal(false);
+      setBlockBarber("");
+      setBlockReason("");
+      loadData();
+    } catch (error) {
+      console.error("Error blocking day:", error);
+      toast({
+        title: "Erro",
+        description: error instanceof Error ? error.message : "Não foi possível bloquear o dia",
+        variant: "destructive",
+      });
+    } finally {
+      setBlocking(false);
+    }
+  };
+
+  const handleUnblockDay = async (blockedDayId: string) => {
+    try {
+      const { error } = await supabase
+        .from("blocked_days")
+        .delete()
+        .eq("id", blockedDayId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Dia desbloqueado",
+        description: "O bloqueio foi removido com sucesso.",
+      });
+      
+      loadData();
+    } catch (error) {
+      console.error("Error unblocking day:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o bloqueio",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Agendamentos</h1>
-        <p className="text-muted-foreground">Gerencie todos os agendamentos por barbeiro</p>
+        <h1 className="text-3xl font-bold font-display">Agendamentos</h1>
+        <p className="text-muted-foreground">Gerencie todos os agendamentos por profissional</p>
       </div>
 
       {/* Period Filter */}
@@ -405,18 +522,60 @@ const Appointments = () => {
         {/* Calendar */}
         <Card className="shadow-elegant">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5" />
-              Calendário
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5" />
+                Calendário
+              </CardTitle>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowBlockModal(true)}
+                className="gap-2"
+              >
+                <Lock className="w-4 h-4" />
+                Bloquear Dia
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="overflow-x-auto">
+          <CardContent className="overflow-x-auto space-y-4">
             <Calendar
               mode="single"
               selected={date}
               onSelect={setDate}
               className="rounded-md border"
             />
+            
+            {/* Blocked days for selected date */}
+            {blockedDays.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-destructive flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  Bloqueios neste dia:
+                </p>
+                {blockedDays.map((block) => (
+                  <div 
+                    key={block.id} 
+                    className="flex items-center justify-between p-2 bg-destructive/10 rounded-md text-sm"
+                  >
+                    <div>
+                      <span className="font-medium">{block.barber_name}</span>
+                      {block.reason && (
+                        <span className="text-muted-foreground"> - {block.reason}</span>
+                      )}
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      onClick={() => handleUnblockDay(block.id)}
+                    >
+                      <Unlock className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -430,10 +589,10 @@ const Appointments = () => {
               </CardTitle>
               <Select value={selectedBarber} onValueChange={setSelectedBarber}>
                 <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Todos os barbeiros" />
+                  <SelectValue placeholder="Todos os profissionais" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os barbeiros</SelectItem>
+                  <SelectItem value="all">Todos os profissionais</SelectItem>
                   {barbers.map((barber) => (
                     <SelectItem key={barber.id} value={barber.id}>
                       {barber.name}
@@ -458,7 +617,7 @@ const Appointments = () => {
                     className={cn(
                       "flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-lg transition-colors border border-border",
                       appointment.status === "confirmed" 
-                        ? "bg-green-100 hover:bg-green-200" 
+                        ? "bg-secondary/10 hover:bg-secondary/20" 
                         : "bg-muted/50 hover:bg-muted"
                     )}
                   >
@@ -479,14 +638,14 @@ const Appointments = () => {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{appointment.client.full_name}</p>
                         <p className="text-sm text-muted-foreground truncate">{appointment.service.name}</p>
-                        <p className="text-sm font-medium text-primary">R$ {appointment.service.price}</p>
+                        <p className="text-sm font-medium text-secondary">R$ {appointment.service.price}</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center justify-between lg:justify-end gap-4 flex-wrap">
                       <div className="text-left lg:text-right">
                         <p className="text-sm font-medium">{appointment.barber.name}</p>
-                        <p className="text-xs text-muted-foreground">Barbeiro</p>
+                        <p className="text-xs text-muted-foreground">Profissional</p>
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -498,7 +657,7 @@ const Appointments = () => {
                             onClick={() => setAppointmentToDelete(appointment)}
                             className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
@@ -511,13 +670,13 @@ const Appointments = () => {
         </Card>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!appointmentToDelete} onOpenChange={() => setAppointmentToDelete(null)}>
+      {/* Delete Appointment Dialog */}
+      <AlertDialog open={!!appointmentToDelete} onOpenChange={(open) => !open && setAppointmentToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o agendamento de "{appointmentToDelete?.client.full_name}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -532,6 +691,58 @@ const Appointments = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Block Day Modal */}
+      <Dialog open={showBlockModal} onOpenChange={setShowBlockModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Lock className="w-5 h-5" />
+              Bloquear Dia
+            </DialogTitle>
+            <DialogDescription>
+              Bloquear a agenda de um profissional para {date ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "a data selecionada"}.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="barber">Profissional *</Label>
+              <Select value={blockBarber} onValueChange={setBlockBarber}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o profissional" />
+                </SelectTrigger>
+                <SelectContent>
+                  {barbers.map((barber) => (
+                    <SelectItem key={barber.id} value={barber.id}>
+                      {barber.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="reason">Motivo (opcional)</Label>
+              <Input
+                id="reason"
+                placeholder="Ex: Férias, Consulta médica..."
+                value={blockReason}
+                onChange={(e) => setBlockReason(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBlockModal(false)} disabled={blocking}>
+              Cancelar
+            </Button>
+            <Button onClick={handleBlockDay} disabled={blocking || !blockBarber}>
+              {blocking ? "Bloqueando..." : "Bloquear Dia"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
