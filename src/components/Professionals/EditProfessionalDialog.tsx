@@ -125,7 +125,7 @@ export function EditProfessionalDialog({ professional, onProfessionalUpdated }: 
           <div className="flex flex-col items-center gap-4">
             <Avatar className="w-24 h-24">
               {photoUrl && <AvatarImage src={photoUrl} />}
-              <AvatarFallback className="bg-gradient-salmon text-2xl">
+              <AvatarFallback className="bg-secondary text-2xl text-icon">
                 {formData.name.split(' ').map(n => n[0]).join('')}
               </AvatarFallback>
             </Avatar>

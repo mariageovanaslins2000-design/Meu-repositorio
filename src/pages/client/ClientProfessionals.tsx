@@ -50,7 +50,7 @@ export default function ClientBarbers() {
           <Card key={barber.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
             <CardHeader className="text-center pb-2">
               <div className="relative w-32 h-32 mx-auto mb-4">
-                <div className="absolute inset-0 bg-gradient-salmon rounded-full animate-pulse opacity-20"></div>
+                <div className="absolute inset-0 bg-secondary rounded-full animate-pulse opacity-20"></div>
                 <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-primary/20 shadow-xl">
                   {barber.photo_url ? (
                     <img 
@@ -59,8 +59,8 @@ export default function ClientBarbers() {
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-salmon flex items-center justify-center">
-                      <User className="h-16 w-16 text-sidebar-primary-foreground" />
+                    <div className="w-full h-full bg-secondary flex items-center justify-center">
+                      <User className="h-16 w-16 text-icon" />
                     </div>
                   )}
                 </div>

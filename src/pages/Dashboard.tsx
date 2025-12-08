@@ -59,14 +59,14 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      <div><h1 className="text-3xl font-bold">Dashboard</h1><p className="text-muted-foreground">Visão geral do seu negócio</p></div>
+      <div><h1 className="text-3xl font-display font-semibold">Dashboard</h1><p className="text-muted-foreground">Visão geral do seu negócio</p></div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">{statsCards.map((stat) => <StatCard key={stat.title} {...stat} />)}</div>
-      <Card className="shadow-elegant">
-        <CardHeader><CardTitle className="flex items-center gap-2"><MessageSquare className="h-5 w-5 text-green-600" />WhatsApp Bot</CardTitle></CardHeader>
-        <CardContent><div className="space-y-3"><div className="flex items-center justify-between"><span className="text-sm font-medium">Status:</span><Badge className="bg-green-600 hover:bg-green-700">✅ Conectado</Badge></div></div></CardContent>
+      <Card className="shadow-elegant border-border/50">
+        <CardHeader><CardTitle className="flex items-center gap-2 font-display"><MessageSquare className="h-5 w-5 text-primary" />WhatsApp Bot</CardTitle></CardHeader>
+        <CardContent><div className="space-y-3"><div className="flex items-center justify-between"><span className="text-sm font-medium">Status:</span><Badge className="bg-primary hover:bg-primary/90">✅ Conectado</Badge></div></div></CardContent>
       </Card>
-      <Card className="shadow-elegant">
-        <CardHeader><CardTitle>Próximos Agendamentos</CardTitle></CardHeader>
+      <Card className="shadow-elegant border-border/50">
+        <CardHeader><CardTitle className="font-display">Próximos Agendamentos</CardTitle></CardHeader>
         <CardContent>
           {loading ? <div className="text-center py-8 text-muted-foreground">Carregando...</div> : recentAppointments.length === 0 ? <div className="text-center py-8 text-muted-foreground">Nenhum agendamento próximo</div> : (
             <div className="space-y-4">{recentAppointments.map((apt) => (

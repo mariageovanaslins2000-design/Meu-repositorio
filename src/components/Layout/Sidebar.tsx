@@ -54,19 +54,19 @@ export const Sidebar = () => {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-salmon flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
             <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">IAClinic</h1>
-            <p className="text-xs text-muted-foreground">Gestão Inteligente</p>
+            <h1 className="text-lg font-display font-semibold text-sidebar-foreground">IAClinic</h1>
+            <p className="text-xs text-sidebar-foreground/60">Gestão Inteligente</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 p-4">
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {menuItems.map((item) => (
             <li key={item.path}>
               <NavLink
@@ -75,7 +75,7 @@ export const Sidebar = () => {
                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                     isActive
                       ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                      : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                   }`
                 }
               >
@@ -90,8 +90,8 @@ export const Sidebar = () => {
       {/* User Profile */}
       <div className="p-4 border-t border-sidebar-border space-y-2">
         <div className="flex items-center gap-3 p-3 rounded-lg">
-          <div className="w-10 h-10 rounded-full bg-sidebar-border flex items-center justify-center">
-            <span className="text-sm font-bold text-sidebar-foreground">
+          <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
+            <span className="text-sm font-semibold text-sidebar-primary-foreground">
               {clinicName.charAt(0).toUpperCase()}
             </span>
           </div>
@@ -99,13 +99,13 @@ export const Sidebar = () => {
             <p className="text-sm font-medium text-sidebar-foreground truncate">
               {clinicName}
             </p>
-            <p className="text-xs text-muted-foreground">Admin</p>
+            <p className="text-xs text-sidebar-foreground/60">Admin</p>
           </div>
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           asChild
         >
           <Link to="/client">
@@ -116,7 +116,7 @@ export const Sidebar = () => {
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
           onClick={signOut}
         >
           <LogOut className="w-4 h-4 mr-2" />

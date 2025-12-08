@@ -68,16 +68,16 @@ export function AddProfessionalDialog({ onProfessionalAdded }: AddProfessionalDi
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-salmon"><Plus className="w-4 h-4 mr-2" />Adicionar Profissional</Button>
+        <Button><Plus className="w-4 h-4 mr-2" />Adicionar Profissional</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Profissional</DialogTitle>
+          <DialogTitle className="font-display">Adicionar Profissional</DialogTitle>
           <DialogDescription>Preencha os dados do profissional</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col items-center gap-4">
-            <Avatar className="w-24 h-24">{photoUrl && <AvatarImage src={photoUrl} />}<AvatarFallback className="bg-gradient-salmon text-2xl">{formData.name.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}</AvatarFallback></Avatar>
+            <Avatar className="w-24 h-24">{photoUrl && <AvatarImage src={photoUrl} />}<AvatarFallback className="bg-secondary text-2xl text-icon">{formData.name.split(' ').map(n => n[0]).join('').toUpperCase() || '?'}</AvatarFallback></Avatar>
             <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}><Upload className="w-4 h-4 mr-2" />{uploading ? "Enviando..." : "Foto"}</Button>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
           </div>
@@ -87,7 +87,7 @@ export function AddProfessionalDialog({ onProfessionalAdded }: AddProfessionalDi
           <div className="space-y-2"><Label>Comissão (%)</Label><Input type="number" min="0" max="100" value={formData.commission_percent} onChange={(e) => setFormData({ ...formData, commission_percent: e.target.value })} /></div>
           <div className="flex gap-3 pt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1" disabled={loading}>Cancelar</Button>
-            <Button type="submit" className="flex-1 bg-gradient-salmon" disabled={loading}>{loading ? "Salvando..." : "Adicionar"}</Button>
+            <Button type="submit" className="flex-1" disabled={loading}>{loading ? "Salvando..." : "Adicionar"}</Button>
           </div>
         </form>
       </DialogContent>

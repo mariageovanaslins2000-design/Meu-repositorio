@@ -2,93 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/* Premium Minimalist Spa/Clinic Design System
+   Palette: Deep Green, Gray-Green, Soft Beige, Warm Sand, Soft Brown
+   All colors in HSL format.
 */
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 210 20% 10%;
+    /* Fundo principal: Bege neutro suave #F4EDE4 */
+    --background: 34 36% 93%;
+    --foreground: 15 15% 25%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 210 20% 10%;
+    /* Cards: Areia quente clara */
+    --card: 30 44% 95%;
+    --card-foreground: 15 15% 25%;
 
+    /* Popover */
     --popover: 0 0% 100%;
-    --popover-foreground: 210 20% 10%;
+    --popover-foreground: 15 15% 25%;
 
-    --primary: 210 20% 12%;
-    --primary-foreground: 210 20% 98%;
+    /* Primary: Verde profundo #5A6E5A */
+    --primary: 120 10% 39%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 199 89% 48%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary: Verde acinzentado claro #A8B2A1 */
+    --secondary: 93 10% 67%;
+    --secondary-foreground: 15 15% 25%;
 
-    --muted: 210 15% 95%;
-    --muted-foreground: 210 10% 45%;
+    /* Muted: Cinza esverdeado #DCE1D8 */
+    --muted: 93 14% 86%;
+    --muted-foreground: 15 15% 45%;
 
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent: Areia quente #E8D2BF */
+    --accent: 30 44% 83%;
+    --accent-foreground: 15 15% 25%;
 
+    /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 15% 90%;
-    --input: 210 15% 90%;
-    --ring: 199 89% 48%;
+    /* Bordas e inputs suaves */
+    --border: 93 14% 80%;
+    --input: 93 14% 85%;
+    --ring: 120 10% 39%;
 
+    /* Raio suave */
     --radius: 0.75rem;
 
-    --sidebar-background: 210 20% 12%;
-    --sidebar-foreground: 210 15% 90%;
-    --sidebar-primary: 199 89% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 15% 18%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 210 15% 18%;
-    --sidebar-ring: 199 89% 48%;
+    /* Sidebar: Verde profundo */
+    --sidebar-background: 120 10% 39%;
+    --sidebar-foreground: 34 36% 93%;
+    --sidebar-primary: 30 44% 83%;
+    --sidebar-primary-foreground: 15 15% 25%;
+    --sidebar-accent: 120 10% 33%;
+    --sidebar-accent-foreground: 34 36% 93%;
+    --sidebar-border: 120 10% 33%;
+    --sidebar-ring: 30 44% 83%;
 
-    --gradient-premium: linear-gradient(135deg, hsl(210 20% 12%), hsl(210 20% 18%));
-    --gradient-clinic: linear-gradient(135deg, hsl(199 89% 48%), hsl(199 89% 38%));
-    --shadow-elegant: 0 10px 40px -10px hsl(210 20% 20% / 0.15);
+    /* Gradientes e sombras premium */
+    --gradient-premium: linear-gradient(135deg, hsl(120 10% 39%), hsl(93 10% 67%));
+    --gradient-spa: linear-gradient(135deg, hsl(30 44% 83%), hsl(34 36% 93%));
+    --shadow-elegant: 0 4px 20px -4px hsl(15 15% 37% / 0.08);
+
+    /* Ícone cor: Marrom suave #6E5951 */
+    --icon: 15 15% 37%;
   }
 
   .dark {
-    --background: 210 20% 7%;
-    --foreground: 210 15% 95%;
+    /* Modo escuro harmonioso com tons terrosos */
+    --background: 15 10% 10%;
+    --foreground: 34 36% 90%;
 
-    --card: 210 20% 10%;
-    --card-foreground: 210 15% 95%;
+    --card: 15 10% 13%;
+    --card-foreground: 34 36% 90%;
 
-    --popover: 210 20% 10%;
-    --popover-foreground: 210 15% 95%;
+    --popover: 15 10% 12%;
+    --popover-foreground: 34 36% 90%;
 
-    --primary: 210 15% 98%;
-    --primary-foreground: 210 20% 10%;
+    --primary: 93 10% 67%;
+    --primary-foreground: 15 15% 15%;
 
-    --secondary: 199 89% 48%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 120 10% 30%;
+    --secondary-foreground: 34 36% 90%;
 
-    --muted: 210 15% 15%;
-    --muted-foreground: 210 10% 60%;
+    --muted: 15 10% 18%;
+    --muted-foreground: 34 20% 60%;
 
-    --accent: 199 89% 48%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 30 30% 25%;
+    --accent-foreground: 34 36% 90%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 15% 18%;
-    --input: 210 15% 18%;
-    --ring: 199 89% 48%;
+    --border: 15 10% 20%;
+    --input: 15 10% 20%;
+    --ring: 93 10% 67%;
 
-    --sidebar-background: 210 20% 7%;
-    --sidebar-foreground: 210 15% 90%;
-    --sidebar-primary: 199 89% 55%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 15% 15%;
-    --sidebar-accent-foreground: 210 15% 90%;
-    --sidebar-border: 210 15% 15%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-background: 15 10% 8%;
+    --sidebar-foreground: 34 36% 90%;
+    --sidebar-primary: 93 10% 67%;
+    --sidebar-primary-foreground: 15 15% 15%;
+    --sidebar-accent: 15 10% 15%;
+    --sidebar-accent-foreground: 34 36% 90%;
+    --sidebar-border: 15 10% 15%;
+    --sidebar-ring: 93 10% 67%;
+
+    --icon: 30 44% 70%;
   }
 }
 
@@ -99,5 +118,14 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Tipografia com mais espaçamento */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-wide;
+  }
+
+  p {
+    @apply leading-relaxed;
   }
 }

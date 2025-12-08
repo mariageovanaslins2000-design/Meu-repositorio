@@ -80,7 +80,7 @@ export function AddServiceDialog({ onServiceAdded }: AddServiceDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-salmon">
+        <Button>
           <Plus className="w-4 h-4 mr-2" />
           Adicionar Serviço
         </Button>
@@ -154,7 +154,7 @@ export function AddServiceDialog({ onServiceAdded }: AddServiceDialogProps) {
             >
               Cancelar
             </Button>
-            <Button type="submit" className="flex-1 bg-gradient-salmon" disabled={loading}>
+            <Button type="submit" className="flex-1" disabled={loading}>
               {loading ? "Salvando..." : "Adicionar"}
             </Button>
           </div>
