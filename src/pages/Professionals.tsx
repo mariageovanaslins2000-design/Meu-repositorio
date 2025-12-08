@@ -55,7 +55,7 @@ const Professionals = () => {
             <Card key={p.id} className="shadow-elegant hover:shadow-xl transition-shadow">
               <CardContent className="p-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <Avatar className="w-20 h-20 sm:w-16 sm:h-16 mx-auto sm:mx-0">{p.photo_url && <AvatarImage src={p.photo_url} alt={p.name} />}<AvatarFallback className="bg-gradient-salmon text-lg font-bold">{p.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback></Avatar>
+                  <Avatar className="w-20 h-20 sm:w-16 sm:h-16 mx-auto sm:mx-0">{p.photo_url && <AvatarImage src={p.photo_url} alt={p.name} />}<AvatarFallback className="bg-secondary text-lg font-bold text-icon">{p.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback></Avatar>
                   <div className="flex-1 text-center sm:text-left">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                       <h3 className="text-xl font-bold">{p.name}</h3>

@@ -13,20 +13,20 @@ interface StatCardProps {
 
 export const StatCard = ({ title, value, icon: Icon, trend }: StatCardProps) => {
   return (
-    <Card className="shadow-elegant">
+    <Card className="shadow-elegant border-border/50">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold">{value}</p>
+            <p className="text-3xl font-display font-semibold">{value}</p>
             {trend && (
-              <p className={`text-sm ${trend.positive ? "text-green-600" : "text-red-600"}`}>
+              <p className={`text-sm ${trend.positive ? "text-primary" : "text-destructive"}`}>
                 {trend.positive ? "↑" : "↓"} {trend.value}
               </p>
             )}
           </div>
-          <div className="w-12 h-12 rounded-lg bg-gradient-salmon flex items-center justify-center">
-            <Icon className="w-6 h-6 text-secondary-foreground" />
+          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center">
+            <Icon className="w-6 h-6 text-icon" />
           </div>
         </div>
       </CardContent>

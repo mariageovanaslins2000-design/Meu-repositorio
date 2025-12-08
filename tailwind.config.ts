@@ -14,8 +14,16 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Poppins', 'system-ui', 'sans-serif'],
         display: ['Playfair Display', 'serif'],
+      },
+      lineHeight: {
+        'relaxed': '1.75',
+        'loose': '2',
+      },
+      letterSpacing: {
+        'wide': '0.025em',
+        'wider': '0.05em',
       },
       colors: {
         border: "hsl(var(--border))",
@@ -23,6 +31,7 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        icon: "hsl(var(--icon))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -64,7 +73,7 @@ export default {
       },
       backgroundImage: {
         'gradient-premium': 'var(--gradient-premium)',
-        'gradient-clinic': 'var(--gradient-clinic)',
+        'gradient-spa': 'var(--gradient-spa)',
       },
       boxShadow: {
         'elegant': 'var(--shadow-elegant)',

@@ -371,8 +371,8 @@ const Financial = () => {
                   <p className="text-2xl font-bold">{item.value}</p>
                   <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
                 </div>
-                <div className="w-12 h-12 rounded-lg bg-gradient-salmon flex items-center justify-center">
-                  <item.icon className="w-6 h-6 text-secondary-foreground" />
+                <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center">
+                  <item.icon className="w-6 h-6 text-icon" />
                 </div>
               </div>
             </CardContent>
