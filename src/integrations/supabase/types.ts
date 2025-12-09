@@ -150,6 +150,7 @@ export type Database = {
           closing_time: string
           created_at: string
           id: string
+          logo_sidebar_url: string | null
           logo_url: string | null
           name: string
           opening_time: string
@@ -165,6 +166,7 @@ export type Database = {
           closing_time?: string
           created_at?: string
           id?: string
+          logo_sidebar_url?: string | null
           logo_url?: string | null
           name: string
           opening_time?: string
@@ -180,6 +182,7 @@ export type Database = {
           closing_time?: string
           created_at?: string
           id?: string
+          logo_sidebar_url?: string | null
           logo_url?: string | null
           name?: string
           opening_time?: string
