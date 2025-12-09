@@ -14,8 +14,8 @@ export const StatCard = ({ title, value, icon, trend }: StatCardProps) => {
   return (
     <Card className="shadow-elegant border-border/50">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
             <p className="text-sm text-muted-foreground">{title}</p>
             <p className="text-3xl font-display font-semibold">{value}</p>
             {trend && (
@@ -24,7 +24,7 @@ export const StatCard = ({ title, value, icon, trend }: StatCardProps) => {
               </p>
             )}
           </div>
-          <div className="text-4xl">{icon}</div>
+          <div className="flex-shrink-0">{icon}</div>
         </div>
       </CardContent>
     </Card>

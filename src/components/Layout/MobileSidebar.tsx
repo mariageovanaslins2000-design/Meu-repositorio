@@ -36,6 +36,7 @@ const menuItems = [
 export const MobileSidebar = () => {
   const { user, signOut } = useAuth();
   const [clinicName, setClinicName] = useState("Clínica");
+  const [sidebarLogo, setSidebarLogo] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -44,12 +45,15 @@ export const MobileSidebar = () => {
       
       const { data } = await supabase
         .from("barbershops")
-        .select("name")
+        .select("name, logo_sidebar_url")
         .eq("owner_id", user.id)
         .maybeSingle();
       
       if (data) {
         setClinicName(data.name);
+        if (data.logo_sidebar_url) {
+          setSidebarLogo(data.logo_sidebar_url);
+        }
       }
     };
 
@@ -60,7 +64,7 @@ export const MobileSidebar = () => {
     <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-sidebar border-b border-sidebar-border">
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-2">
-          <img src={logoGreen} alt="iClinic" className="w-8 h-8 rounded-lg object-cover" />
+          <img src={sidebarLogo || logoGreen} alt="iClinic" className="w-8 h-8 rounded-lg object-cover" />
           <div>
             <h1 className="text-sm font-display font-semibold text-sidebar-foreground">iClinic</h1>
           </div>
@@ -77,7 +81,7 @@ export const MobileSidebar = () => {
               {/* Logo */}
               <div className="p-6 border-b border-sidebar-border">
                 <div className="flex items-center gap-3">
-                  <img src={logoGreen} alt="iClinic" className="w-10 h-10 rounded-lg object-cover" />
+                  <img src={sidebarLogo || logoGreen} alt="iClinic" className="w-10 h-10 rounded-lg object-cover" />
                   <div>
                     <h1 className="text-lg font-display font-semibold text-sidebar-foreground">iClinic</h1>
                     <p className="text-xs text-sidebar-foreground/60">Gestão Inteligente</p>
