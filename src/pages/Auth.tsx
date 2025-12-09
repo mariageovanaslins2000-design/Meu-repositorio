@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2 } from "lucide-react";
 import { z } from "zod";
 import { PasswordStrengthIndicator } from "@/components/Auth/PasswordStrengthIndicator";
+import logoDark from "@/assets/logo-dark.png";
 
 const strongPasswordSchema = z.string()
   .min(8, "Senha deve ter no mínimo 8 caracteres")
@@ -111,11 +111,8 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <Building2 className="h-8 w-8 text-primary-foreground" />
-            </div>
+            <img src={logoDark} alt="iClinic" className="h-20 w-20 object-contain" />
           </div>
-          <CardTitle className="text-2xl">IAClinic</CardTitle>
           <CardDescription>Sistema de Gestão de Clínicas</CardDescription>
         </CardHeader>
         <CardContent>

@@ -2,8 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2 } from "lucide-react";
 import { useEffect } from "react";
+import logoDark from "@/assets/logo-dark.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,21 +32,13 @@ const Index = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="p-4 bg-primary rounded-full">
-              <Building2 className="h-12 w-12 text-primary-foreground" />
-            </div>
+            <img src={logoDark} alt="iClinic" className="h-24 w-24 object-contain" />
           </div>
-          <h1 className="text-4xl font-bold mb-2">IAClinic</h1>
           <p className="text-xl text-muted-foreground">Sistema de Gestão de Clínicas</p>
         </div>
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-primary/10 rounded-full">
-                <Building2 className="h-8 w-8 text-primary" />
-              </div>
-            </div>
             <CardTitle className="text-2xl">Área Administrativa</CardTitle>
             <CardDescription>Gerencie sua clínica</CardDescription>
           </CardHeader>

@@ -1,17 +1,16 @@
-import { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon: React.ReactNode;
   trend?: {
     value: string;
     positive: boolean;
   };
 }
 
-export const StatCard = ({ title, value, icon: Icon, trend }: StatCardProps) => {
+export const StatCard = ({ title, value, icon, trend }: StatCardProps) => {
   return (
     <Card className="shadow-elegant border-border/50">
       <CardContent className="p-6">
@@ -25,9 +24,7 @@ export const StatCard = ({ title, value, icon: Icon, trend }: StatCardProps) => 
               </p>
             )}
           </div>
-          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center">
-            <Icon className="w-6 h-6 text-icon" />
-          </div>
+          <div className="text-4xl">{icon}</div>
         </div>
       </CardContent>
     </Card>
