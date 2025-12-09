@@ -1,4 +1,4 @@
-import { Calendar, DollarSign, Users, Building2, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { StatCard } from "@/components/Dashboard/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
@@ -45,10 +45,10 @@ const Dashboard = () => {
   };
 
   const statsCards = [
-    { title: "Agendamentos Hoje", value: loading ? "..." : stats.todayAppointments, icon: Calendar, trend: { value: "Hoje", positive: true } },
-    { title: "Receita do Mês", value: loading ? "..." : `R$ ${stats.monthRevenue.toFixed(2)}`, icon: DollarSign, trend: { value: "Mês atual", positive: true } },
-    { title: "Profissionais Ativos", value: loading ? "..." : stats.activeProfessionals, icon: Building2, trend: { value: "Ativos", positive: true } },
-    { title: "Clientes Ativos", value: loading ? "..." : stats.activeClients, icon: Users, trend: { value: "Total", positive: true } },
+    { title: "Agendamentos Hoje", value: loading ? "..." : stats.todayAppointments, icon: "📅", trend: { value: "Hoje", positive: true } },
+    { title: "Receita do Mês", value: loading ? "..." : `R$ ${stats.monthRevenue.toFixed(2)}`, icon: "💰", trend: { value: "Mês atual", positive: true } },
+    { title: "Profissionais Ativos", value: loading ? "..." : stats.activeProfessionals, icon: "👨‍⚕️", trend: { value: "Ativos", positive: true } },
+    { title: "Clientes Ativos", value: loading ? "..." : stats.activeClients, icon: "👥", trend: { value: "Total", positive: true } },
   ];
 
   const getStatusBadge = (status: string) => {

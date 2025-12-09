@@ -8,13 +8,13 @@ import {
   Settings,
   Image,
   LogOut,
-  Store,
-  Building2
+  Store
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logoGreen from "@/assets/logo-green.png";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
@@ -54,11 +54,9 @@ export const Sidebar = () => {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-sidebar-primary flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-sidebar-primary-foreground" />
-          </div>
+          <img src={logoGreen} alt="iClinic" className="w-10 h-10 rounded-lg object-cover" />
           <div>
-            <h1 className="text-lg font-display font-semibold text-sidebar-foreground">IAClinic</h1>
+            <h1 className="text-lg font-display font-semibold text-sidebar-foreground">iClinic</h1>
             <p className="text-xs text-sidebar-foreground/60">Gestão Inteligente</p>
           </div>
         </div>
