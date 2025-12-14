@@ -1,19 +1,17 @@
-import { MessageSquare, Calendar, DollarSign, UserCheck, Users } from "lucide-react";
+import { Calendar, DollarSign, UserCheck, Users } from "lucide-react";
 import { StatCard } from "@/components/Dashboard/StatCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppointmentsChart } from "@/components/Dashboard/AppointmentsChart";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Badge } from "@/components/ui/badge";
 
 type DashboardStats = { todayAppointments: number; monthRevenue: number; activeProfessionals: number; activeClients: number; };
-type RecentAppointment = { id: string; client_name: string; professional_name: string; service_name: string; time: string; status: string; };
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [clinicId, setClinicId] = useState<string | null>(null);
   const [stats, setStats] = useState<DashboardStats>({ todayAppointments: 0, monthRevenue: 0, activeProfessionals: 0, activeClients: 0 });
-  const [recentAppointments, setRecentAppointments] = useState<RecentAppointment[]>([]);
 
   useEffect(() => { loadDashboardData(); }, [user]);
 
@@ -23,6 +21,7 @@ const Dashboard = () => {
       setLoading(true);
       const { data: clinic } = await supabase.from("barbershops").select("id").eq("owner_id", user.id).single();
       if (!clinic) return;
+      setClinicId(clinic.id);
       const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
       const endOfDay = new Date(); endOfDay.setHours(23, 59, 59, 999);
       const { count: todayCount } = await supabase.from("appointments").select("*", { count: "exact", head: true }).eq("barbershop_id", clinic.id).gte("appointment_date", startOfDay.toISOString()).lte("appointment_date", endOfDay.toISOString());
@@ -32,15 +31,6 @@ const Dashboard = () => {
       const { count: professionalsCount } = await supabase.from("barbers").select("*", { count: "exact", head: true }).eq("barbershop_id", clinic.id).eq("is_active", true);
       const { count: clientsCount } = await supabase.from("clients").select("*", { count: "exact", head: true }).eq("barbershop_id", clinic.id).gte("total_visits", 1);
       setStats({ todayAppointments: todayCount || 0, monthRevenue, activeProfessionals: professionalsCount || 0, activeClients: clientsCount || 0 });
-      const { data: appointmentsData } = await supabase.from("appointments").select("id, appointment_date, status, client_id, barber_id, service_id").eq("barbershop_id", clinic.id).gte("appointment_date", new Date().toISOString()).order("appointment_date", { ascending: true }).limit(5);
-      if (appointmentsData && appointmentsData.length > 0) {
-        const barberIds = [...new Set(appointmentsData.map(a => a.barber_id))];
-        const clientIds = [...new Set(appointmentsData.map(a => a.client_id))];
-        const serviceIds = [...new Set(appointmentsData.map(a => a.service_id))];
-        const [{ data: professionalsData }, { data: clientsData }, { data: servicesData }] = await Promise.all([supabase.from("barbers").select("id, name").in("id", barberIds), supabase.from("profiles").select("id, full_name").in("id", clientIds), supabase.from("services").select("id, name").in("id", serviceIds)]);
-        const formatted = appointmentsData.map(apt => ({ id: apt.id, client_name: clientsData?.find(c => c.id === apt.client_id)?.full_name || "N/A", professional_name: professionalsData?.find(b => b.id === apt.barber_id)?.name || "N/A", service_name: servicesData?.find(s => s.id === apt.service_id)?.name || "N/A", time: new Date(apt.appointment_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }), status: apt.status }));
-        setRecentAppointments(formatted);
-      }
     } catch { } finally { setLoading(false); }
   };
 
@@ -51,33 +41,11 @@ const Dashboard = () => {
     { title: "Clientes Ativos", value: loading ? "..." : stats.activeClients, icon: <Users className="w-8 h-8 text-primary" />, trend: { value: "Total", positive: true } },
   ];
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline"; label: string }> = { pending: { variant: "secondary", label: "Pendente" }, confirmed: { variant: "default", label: "Confirmado" }, completed: { variant: "outline", label: "Concluído" }, cancelled: { variant: "destructive", label: "Cancelado" } };
-    const config = variants[status] || variants.pending;
-    return <Badge variant={config.variant}>{config.label}</Badge>;
-  };
-
   return (
     <div className="space-y-8">
       <div><h1 className="text-3xl font-display font-semibold">Dashboard</h1><p className="text-muted-foreground">Visão geral do seu negócio</p></div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">{statsCards.map((stat) => <StatCard key={stat.title} {...stat} />)}</div>
-      <Card className="shadow-elegant border-border/50">
-        <CardHeader><CardTitle className="flex items-center gap-2 font-display"><MessageSquare className="h-5 w-5 text-primary" />WhatsApp Bot</CardTitle></CardHeader>
-        <CardContent><div className="space-y-3"><div className="flex items-center justify-between"><span className="text-sm font-medium">Status:</span><Badge className="bg-primary hover:bg-primary/90">✅ Conectado</Badge></div></div></CardContent>
-      </Card>
-      <Card className="shadow-elegant border-border/50">
-        <CardHeader><CardTitle className="font-display">Próximos Agendamentos</CardTitle></CardHeader>
-        <CardContent>
-          {loading ? <div className="text-center py-8 text-muted-foreground">Carregando...</div> : recentAppointments.length === 0 ? <div className="text-center py-8 text-muted-foreground">Nenhum agendamento próximo</div> : (
-            <div className="space-y-4">{recentAppointments.map((apt) => (
-              <div key={apt.id} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border">
-                <div className="flex-1 min-w-0"><p className="font-medium truncate">{apt.client_name}</p><p className="text-sm text-muted-foreground truncate">{apt.service_name}</p></div>
-                <div className="flex items-center gap-4 justify-between sm:justify-end"><div className="text-left sm:text-right"><p className="font-medium">{apt.time}</p><p className="text-sm text-muted-foreground">{apt.professional_name}</p></div>{getStatusBadge(apt.status)}</div>
-              </div>
-            ))}</div>
-          )}
-        </CardContent>
-      </Card>
+      {clinicId && <AppointmentsChart clinicId={clinicId} />}
     </div>
   );
 };
