@@ -299,12 +299,12 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label className="text-xs">Abre às</Label>
                     <Select 
-                      value={clinic.saturday_opening_time} 
-                      onValueChange={(v) => setClinic({ ...clinic, saturday_opening_time: v })}
+                      value={clinic.saturday_opening_time || "__default__"} 
+                      onValueChange={(v) => setClinic({ ...clinic, saturday_opening_time: v === "__default__" ? "" : v })}
                     >
                       <SelectTrigger><SelectValue placeholder="Padrão" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Usar padrão</SelectItem>
+                        <SelectItem value="__default__">Usar padrão</SelectItem>
                         {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -312,12 +312,12 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label className="text-xs">Fecha às</Label>
                     <Select 
-                      value={clinic.saturday_closing_time} 
-                      onValueChange={(v) => setClinic({ ...clinic, saturday_closing_time: v })}
+                      value={clinic.saturday_closing_time || "__default__"} 
+                      onValueChange={(v) => setClinic({ ...clinic, saturday_closing_time: v === "__default__" ? "" : v })}
                     >
                       <SelectTrigger><SelectValue placeholder="Padrão" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Usar padrão</SelectItem>
+                        <SelectItem value="__default__">Usar padrão</SelectItem>
                         {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                       </SelectContent>
                     </Select>
