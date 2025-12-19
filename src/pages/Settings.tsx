@@ -50,7 +50,9 @@ const Settings = () => {
     secondary_color: "#1A1A1A",
     opening_time: "09:00",
     closing_time: "18:00",
-    working_days: [1, 2, 3, 4, 5, 6] as number[]
+    working_days: [1, 2, 3, 4, 5, 6] as number[],
+    saturday_opening_time: "" as string,
+    saturday_closing_time: "" as string
   });
   
   useEffect(() => { loadClinic(); }, [user]);
@@ -70,7 +72,9 @@ const Settings = () => {
         secondary_color: data.secondary_color || "#1A1A1A",
         opening_time: data.opening_time?.slice(0, 5) || "09:00",
         closing_time: data.closing_time?.slice(0, 5) || "18:00",
-        working_days: data.working_days || [1, 2, 3, 4, 5, 6]
+        working_days: data.working_days || [1, 2, 3, 4, 5, 6],
+        saturday_opening_time: data.saturday_opening_time?.slice(0, 5) || "",
+        saturday_closing_time: data.saturday_closing_time?.slice(0, 5) || ""
       });
     } catch { }
   };
@@ -140,7 +144,9 @@ const Settings = () => {
         secondary_color: clinic.secondary_color,
         opening_time: clinic.opening_time,
         closing_time: clinic.closing_time,
-        working_days: clinic.working_days
+        working_days: clinic.working_days,
+        saturday_opening_time: clinic.saturday_opening_time || null,
+        saturday_closing_time: clinic.saturday_closing_time || null
       }).eq("owner_id", user.id);
       if (error) throw error;
       toast.success("Configurações salvas!");
@@ -284,6 +290,41 @@ const Settings = () => {
                 ))}
               </div>
             </div>
+            
+            {clinic.working_days.includes(6) && (
+              <div className="border-t pt-4 space-y-3">
+                <Label className="text-sm font-medium">Horário especial para Sábado</Label>
+                <p className="text-xs text-muted-foreground">Deixe em branco para usar o horário padrão</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs">Abre às</Label>
+                    <Select 
+                      value={clinic.saturday_opening_time} 
+                      onValueChange={(v) => setClinic({ ...clinic, saturday_opening_time: v })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Padrão" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Usar padrão</SelectItem>
+                        {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">Fecha às</Label>
+                    <Select 
+                      value={clinic.saturday_closing_time} 
+                      onValueChange={(v) => setClinic({ ...clinic, saturday_closing_time: v })}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Padrão" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Usar padrão</SelectItem>
+                        {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
         
