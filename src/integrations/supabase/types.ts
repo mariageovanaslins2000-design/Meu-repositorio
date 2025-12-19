@@ -157,6 +157,8 @@ export type Database = {
           owner_id: string
           phone: string | null
           primary_color: string | null
+          saturday_closing_time: string | null
+          saturday_opening_time: string | null
           secondary_color: string | null
           updated_at: string
           working_days: number[]
@@ -173,6 +175,8 @@ export type Database = {
           owner_id: string
           phone?: string | null
           primary_color?: string | null
+          saturday_closing_time?: string | null
+          saturday_opening_time?: string | null
           secondary_color?: string | null
           updated_at?: string
           working_days?: number[]
@@ -189,6 +193,8 @@ export type Database = {
           owner_id?: string
           phone?: string | null
           primary_color?: string | null
+          saturday_closing_time?: string | null
+          saturday_opening_time?: string | null
           secondary_color?: string | null
           updated_at?: string
           working_days?: number[]
