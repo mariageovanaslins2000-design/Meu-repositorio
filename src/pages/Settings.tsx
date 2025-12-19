@@ -1,4 +1,4 @@
-import { Upload, Bell, User, Image } from "lucide-react";
+import { Upload, Bell, User, Image, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,29 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { ClientLinkGenerator } from "@/components/Clients/ClientLinkGenerator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const DAYS_OF_WEEK = [
+  { value: 1, label: "Segunda" },
+  { value: 2, label: "Terça" },
+  { value: 3, label: "Quarta" },
+  { value: 4, label: "Quinta" },
+  { value: 5, label: "Sexta" },
+  { value: 6, label: "Sábado" },
+  { value: 0, label: "Domingo" },
+];
+
+const generateTimeOptions = () => {
+  const options = [];
+  for (let h = 6; h <= 23; h++) {
+    options.push(`${h.toString().padStart(2, "0")}:00`);
+    if (h < 23) options.push(`${h.toString().padStart(2, "0")}:30`);
+  }
+  return options;
+};
+
+const TIME_OPTIONS = generateTimeOptions();
 
 const Settings = () => {
   const { user } = useAuth();
@@ -24,7 +47,10 @@ const Settings = () => {
     logo_url: "", 
     logo_sidebar_url: "",
     primary_color: "#D4AF37", 
-    secondary_color: "#1A1A1A" 
+    secondary_color: "#1A1A1A",
+    opening_time: "09:00",
+    closing_time: "18:00",
+    working_days: [1, 2, 3, 4, 5, 6] as number[]
   });
   
   useEffect(() => { loadClinic(); }, [user]);
@@ -41,7 +67,10 @@ const Settings = () => {
         logo_url: data.logo_url || "", 
         logo_sidebar_url: data.logo_sidebar_url || "",
         primary_color: data.primary_color || "#D4AF37", 
-        secondary_color: data.secondary_color || "#1A1A1A" 
+        secondary_color: data.secondary_color || "#1A1A1A",
+        opening_time: data.opening_time?.slice(0, 5) || "09:00",
+        closing_time: data.closing_time?.slice(0, 5) || "18:00",
+        working_days: data.working_days || [1, 2, 3, 4, 5, 6]
       });
     } catch { }
   };
@@ -108,7 +137,10 @@ const Settings = () => {
         logo_url: clinic.logo_url, 
         logo_sidebar_url: clinic.logo_sidebar_url,
         primary_color: clinic.primary_color, 
-        secondary_color: clinic.secondary_color 
+        secondary_color: clinic.secondary_color,
+        opening_time: clinic.opening_time,
+        closing_time: clinic.closing_time,
+        working_days: clinic.working_days
       }).eq("owner_id", user.id);
       if (error) throw error;
       toast.success("Configurações salvas!");
@@ -199,6 +231,57 @@ const Settings = () => {
                     <Input value={clinic.secondary_color} onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })} />
                   </div>
                 </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-elegant">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><Clock className="w-5 h-5" />Horário de Funcionamento</CardTitle>
+            <CardDescription>Configure o expediente da sua agenda</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Abre às</Label>
+                <Select value={clinic.opening_time} onValueChange={(v) => setClinic({ ...clinic, opening_time: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Fecha às</Label>
+                <Select value={clinic.closing_time} onValueChange={(v) => setClinic({ ...clinic, closing_time: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Label>Dias de funcionamento</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {DAYS_OF_WEEK.map((day) => (
+                  <div key={day.value} className="flex items-center gap-2">
+                    <Checkbox 
+                      id={`day-${day.value}`}
+                      checked={clinic.working_days.includes(day.value)}
+                      onCheckedChange={(checked) => {
+                        setClinic({
+                          ...clinic,
+                          working_days: checked 
+                            ? [...clinic.working_days, day.value]
+                            : clinic.working_days.filter((d) => d !== day.value)
+                        });
+                      }}
+                    />
+                    <Label htmlFor={`day-${day.value}`} className="text-sm cursor-pointer">{day.label}</Label>
+                  </div>
+                ))}
               </div>
             </div>
           </CardContent>
