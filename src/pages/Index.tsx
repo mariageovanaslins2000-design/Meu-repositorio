@@ -54,9 +54,9 @@ const Index = () => {
               variant="outline"
               className="w-full" 
               size="lg"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/vendas")}
             >
-              Cadastrar-se
+              Conhecer Planos
             </Button>
           </CardContent>
         </Card>

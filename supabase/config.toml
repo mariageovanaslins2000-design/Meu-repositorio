@@ -8,3 +8,15 @@ verify_jwt = false
 
 [functions.notification-scheduler]
 verify_jwt = false
+
+[functions.stripe-checkout]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.validate-activation-token]
+verify_jwt = false
+
+[functions.activate-account]
+verify_jwt = false
