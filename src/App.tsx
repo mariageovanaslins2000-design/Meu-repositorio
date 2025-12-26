@@ -27,6 +27,9 @@ import ClientPortfolio from "./pages/client/ClientPortfolio";
 import SelectClinic from "./pages/client/SelectClinic";
 import ClientSignup from "./pages/ClientSignup";
 import ClientLogin from "./pages/ClientLogin";
+import Sales from "./pages/Sales";
+import Activate from "./pages/Activate";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 import Install from "./pages/Install";
 import Index from "./pages/Index";
@@ -49,6 +52,9 @@ const App = () => (
             <Route path="/cadastro-cliente" element={<ClientSignup />} />
             <Route path="/login-cliente" element={<ClientLogin />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/vendas" element={<Sales />} />
+            <Route path="/ativar/:token" element={<Activate />} />
+            <Route path="/checkout-sucesso" element={<CheckoutSuccess />} />
             
             {/* Admin Routes */}
             <Route
