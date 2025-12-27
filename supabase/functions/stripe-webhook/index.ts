@@ -88,8 +88,8 @@ serve(async (req) => {
 
       const activationUrl = `${Deno.env.get("SUPABASE_URL")?.replace(".supabase.co", ".lovable.app") || "https://iclinic.lovable.app"}/ativar/${tokenData.token}`;
       
-      // Try to get a better origin from the session
-      const origin = "https://preview--iclinic-iota.lovable.app";
+      // Use production URL
+      const origin = "https://iclinic-iota.lovable.app";
       const finalActivationUrl = `${origin}/ativar/${tokenData.token}`;
       
       logStep("Activation URL", { url: finalActivationUrl });
@@ -100,22 +100,52 @@ serve(async (req) => {
         try {
           const resend = new Resend(resendKey);
           
+          const planName = planData?.name || "Profissional";
+          
           await resend.emails.send({
             from: "iClinic <onboarding@resend.dev>",
+            reply_to: "suporte@iclinic.com.br",
             to: [email],
-            subject: "🎉 Ative sua conta no iClinic",
+            subject: `Ative sua conta - Plano ${planName}`,
+            text: `Olá!\n\nSeu pagamento foi confirmado e seu período de teste de 7 dias no iClinic começou.\n\nPlano: ${planName}\n\nPara ativar sua conta, acesse o link abaixo:\n${finalActivationUrl}\n\nEste link expira em 48 horas.\n\nSe você não solicitou isso, ignore este email.\n\nAtenciosamente,\nEquipe iClinic`,
             html: `
-              <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h1 style="color: #5A6E5A;">Bem-vindo ao iClinic!</h1>
-                <p>Seu pagamento foi confirmado e seu período de teste de 7 dias começou.</p>
-                <p><strong>Plano:</strong> ${planData?.name || "Profissional"}</p>
-                <p>Clique no botão abaixo para ativar sua conta e começar a usar:</p>
-                <a href="${finalActivationUrl}" style="display: inline-block; background-color: #5A6E5A; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
-                  Ativar Minha Conta
-                </a>
-                <p style="color: #666; font-size: 14px;">
-                  Este link expira em 48 horas.<br>
-                  Se você não solicitou isso, ignore este email.
+              <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="color: #2d3748; font-size: 24px; margin: 0;">iClinic</h1>
+                </div>
+                
+                <p style="color: #2d3748; font-size: 16px; line-height: 1.6;">Olá!</p>
+                
+                <p style="color: #2d3748; font-size: 16px; line-height: 1.6;">
+                  Seu pagamento foi confirmado e seu período de teste de <strong>7 dias</strong> no iClinic começou.
+                </p>
+                
+                <p style="color: #2d3748; font-size: 16px; line-height: 1.6;">
+                  <strong>Plano:</strong> ${planName}
+                </p>
+                
+                <p style="color: #2d3748; font-size: 16px; line-height: 1.6;">
+                  Clique no botão abaixo para ativar sua conta e começar a usar:
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${finalActivationUrl}" style="display: inline-block; background-color: #5A6E5A; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                    Ativar Minha Conta
+                  </a>
+                </div>
+                
+                <p style="color: #718096; font-size: 14px; line-height: 1.6;">
+                  Este link expira em 48 horas.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;" />
+                
+                <p style="color: #a0aec0; font-size: 12px; line-height: 1.6; text-align: center;">
+                  Se você não solicitou esta conta, pode ignorar este email com segurança.
+                </p>
+                
+                <p style="color: #a0aec0; font-size: 12px; line-height: 1.6; text-align: center;">
+                  iClinic - Sistema de Gestão para Clínicas e Barbearias
                 </p>
               </div>
             `,
@@ -131,12 +161,14 @@ serve(async (req) => {
         } catch (emailError) {
           logStep("Error sending email", { error: emailError });
         }
+      } else {
+        logStep("RESEND_API_KEY not configured, skipping email");
       }
 
       // Send WhatsApp via n8n
       if (phone) {
         try {
-          const n8nWebhookUrl = "https://n8n-n8n.knceh1.easypanel.host/webhook/ativacao";
+          const n8nWebhookUrl = "https://n8n-n8n.knceh1.easypanel.host/webhook/ativação";
           
           await fetch(n8nWebhookUrl, {
             method: "POST",
