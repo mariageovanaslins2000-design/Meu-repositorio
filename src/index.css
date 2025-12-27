@@ -143,9 +143,9 @@
     overflow-x: hidden;
   }
 
-  /* Tipografia elegante com Playfair Display nos títulos */
+  /* Tipografia consistente com DM Sans em todo o app */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-wide font-medium;
+    @apply font-sans tracking-wide font-medium;
   }
 
   p {

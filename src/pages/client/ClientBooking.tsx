@@ -303,10 +303,10 @@ export default function ClientBooking() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Nova Consulta</h1>
-        <p className="text-muted-foreground">Siga os passos para agendar seu horário</p>
+        <h1 className="text-xl font-medium mb-1">Novo Agendamento</h1>
+        <p className="text-sm text-muted-foreground">Siga os passos para agendar seu horário</p>
       </div>
 
       {/* Progress Steps */}
@@ -314,14 +314,14 @@ export default function ClientBooking() {
         {[1, 2, 3, 4].map((s) => (
           <div key={s} className="flex items-center flex-1">
             <div
-              className={`flex items-center justify-center w-10 h-10 rounded-full ${
+              className={`flex items-center justify-center w-8 h-8 text-sm rounded-full ${
                 step >= s ? "bg-primary text-primary-foreground" : "bg-muted"
               }`}
             >
-              {step > s ? <Check className="h-5 w-5" /> : s}
+              {step > s ? <Check className="h-4 w-4" /> : s}
             </div>
             {s < 4 && (
-              <div className={`flex-1 h-1 mx-2 ${step > s ? "bg-primary" : "bg-muted"}`} />
+              <div className={`flex-1 h-0.5 mx-2 ${step > s ? "bg-primary" : "bg-muted"}`} />
             )}
           </div>
         ))}
@@ -329,21 +329,21 @@ export default function ClientBooking() {
 
       {/* Step 1: Select Service */}
       {step === 1 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Escolha o Procedimento</h2>
+        <div className="space-y-3">
+          <h2 className="text-lg font-medium">Escolha o Serviço</h2>
           {services.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <p>Nenhum procedimento disponível no momento.</p>
-                <p className="text-sm mt-2">Entre em contato com a clínica.</p>
+              <CardContent className="py-6 text-center text-muted-foreground text-sm">
+                <p>Nenhum serviço disponível no momento.</p>
+                <p className="mt-1">Entre em contato conosco.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               {services.map((service) => (
                 <Card
                   key={service.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                  className={`cursor-pointer transition-all hover:shadow-md p-0 ${
                     selectedService?.id === service.id ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() => {
@@ -351,14 +351,14 @@ export default function ClientBooking() {
                     setStep(2);
                   }}
                 >
-                  <CardHeader>
-                    <CardTitle>{service.name}</CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
+                  <CardHeader className="p-3 pb-2">
+                    <CardTitle className="text-sm font-medium">{service.name}</CardTitle>
+                    <CardDescription className="text-xs">{service.description}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-3 pt-0">
                     <div className="flex justify-between items-center">
-                      <span className="text-2xl font-bold">R$ {Number(service.price).toFixed(2)}</span>
-                      <span className="text-sm text-muted-foreground">{service.duration_minutes} min</span>
+                      <span className="text-base font-semibold">R$ {Number(service.price).toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground">{service.duration_minutes} min</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -370,21 +370,21 @@ export default function ClientBooking() {
 
       {/* Step 2: Select Specialist */}
       {step === 2 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Escolha o Especialista</h2>
+        <div className="space-y-3">
+          <h2 className="text-lg font-medium">Escolha o Profissional</h2>
           {barbers.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                <p>Nenhum especialista disponível no momento.</p>
-                <p className="text-sm mt-2">Entre em contato com a clínica.</p>
+              <CardContent className="py-6 text-center text-muted-foreground text-sm">
+                <p>Nenhum profissional disponível no momento.</p>
+                <p className="mt-1">Entre em contato conosco.</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-3 grid-cols-2 md:grid-cols-3">
               {barbers.map((barber) => (
                 <Card
                   key={barber.id}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
+                  className={`cursor-pointer transition-all hover:shadow-md ${
                     selectedBarber?.id === barber.id ? "ring-2 ring-primary" : ""
                   }`}
                   onClick={() => {
@@ -392,26 +392,26 @@ export default function ClientBooking() {
                     setStep(3);
                   }}
                 >
-                <CardHeader className="text-center">
+                <CardHeader className="text-center p-3">
                     {barber.photo_url ? (
                       <img 
                         src={barber.photo_url} 
                         alt={barber.name}
-                        className="w-20 h-20 mx-auto mb-2 rounded-full object-cover"
+                        className="w-14 h-14 mx-auto mb-2 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-20 h-20 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center text-2xl font-bold">
+                      <div className="w-14 h-14 mx-auto mb-2 rounded-full bg-muted flex items-center justify-center text-lg font-medium">
                         {barber.name.charAt(0)}
                       </div>
                     )}
-                    <CardTitle>{barber.name}</CardTitle>
-                    {barber.specialty && <CardDescription>{barber.specialty}</CardDescription>}
+                    <CardTitle className="text-sm font-medium">{barber.name}</CardTitle>
+                    {barber.specialty && <CardDescription className="text-xs">{barber.specialty}</CardDescription>}
                   </CardHeader>
                 </Card>
               ))}
             </div>
           )}
-          <Button variant="outline" onClick={() => setStep(1)}>
+          <Button variant="outline" size="sm" onClick={() => setStep(1)}>
             Voltar
           </Button>
         </div>
@@ -419,14 +419,14 @@ export default function ClientBooking() {
 
       {/* Step 3: Select Date and Time */}
       {step === 3 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Escolha Data e Horário</h2>
-          <div className="grid gap-8 md:grid-cols-2">
+        <div className="space-y-3">
+          <h2 className="text-lg font-medium">Escolha Data e Horário</h2>
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
-              <CardHeader>
-                <CardTitle>Selecione a Data</CardTitle>
+              <CardHeader className="p-3 pb-2">
+                <CardTitle className="text-sm font-medium">Selecione a Data</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-3 pt-0">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
@@ -438,30 +438,32 @@ export default function ClientBooking() {
                     return !barbershop?.working_days?.includes(day) || date < today;
                   }}
                   locale={ptBR}
-                  className="rounded-md border"
+                  className="rounded-md border text-sm"
                 />
               </CardContent>
             </Card>
 
             {selectedDate && (
               <Card>
-                <CardHeader>
-                  <CardTitle>Horários Disponíveis</CardTitle>
-                  <CardDescription>
+                <CardHeader className="p-3 pb-2">
+                  <CardTitle className="text-sm font-medium">Horários Disponíveis</CardTitle>
+                  <CardDescription className="text-xs">
                     {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3 pt-0">
                   {availableTimes.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-4">
+                    <p className="text-center text-muted-foreground py-3 text-sm">
                       Nenhum horário disponível
                     </p>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5">
                       {availableTimes.map((time) => (
                         <Button
                           key={time}
                           variant={selectedTime === time ? "default" : "outline"}
+                          size="sm"
+                          className="text-xs"
                           onClick={() => {
                             setSelectedTime(time);
                             setStep(4);
@@ -476,7 +478,7 @@ export default function ClientBooking() {
               </Card>
             )}
           </div>
-          <Button variant="outline" onClick={() => setStep(2)}>
+          <Button variant="outline" size="sm" onClick={() => setStep(2)}>
             Voltar
           </Button>
         </div>
@@ -484,20 +486,20 @@ export default function ClientBooking() {
 
       {/* Step 4: Confirmation */}
       {step === 4 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Confirmação</h2>
+        <div className="space-y-3">
+          <h2 className="text-lg font-medium">Confirmação</h2>
           <Card>
-            <CardHeader>
-              <CardTitle>Detalhes do Agendamento</CardTitle>
+            <CardHeader className="p-3 pb-2">
+              <CardTitle className="text-sm font-medium">Detalhes do Agendamento</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-2">
+            <CardContent className="p-3 pt-0 space-y-3">
+              <div className="grid gap-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Serviço:</span>
                   <span className="font-medium">{selectedService?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Barbeiro:</span>
+                  <span className="text-muted-foreground">Profissional:</span>
                   <span className="font-medium">{selectedBarber?.name}</span>
                 </div>
                 <div className="flex justify-between">
@@ -512,29 +514,30 @@ export default function ClientBooking() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Duração:</span>
-                  <span className="font-medium">{selectedService?.duration_minutes} minutos</span>
+                  <span className="font-medium">{selectedService?.duration_minutes} min</span>
                 </div>
-                <div className="flex justify-between text-lg font-bold">
+                <div className="flex justify-between text-base font-semibold pt-2 border-t">
                   <span>Total:</span>
                   <span>R$ {Number(selectedService?.price).toFixed(2)}</span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Observações (opcional)</label>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium">Observações (opcional)</label>
                 <Textarea
-                  placeholder="Alguma observação para o barbeiro?"
+                  placeholder="Alguma observação?"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
+                  className="text-sm"
                 />
               </div>
 
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setStep(3)} className="flex-1" disabled={isSubmitting}>
+                <Button variant="outline" size="sm" onClick={() => setStep(3)} className="flex-1" disabled={isSubmitting}>
                   Voltar
                 </Button>
-                <Button onClick={handleCreateAppointment} disabled={loading || isSubmitting} className="flex-1">
-                  {loading ? "Confirmando..." : "Confirmar Agendamento"}
+                <Button size="sm" onClick={handleCreateAppointment} disabled={loading || isSubmitting} className="flex-1">
+                  {loading ? "Confirmando..." : "Confirmar"}
                 </Button>
               </div>
             </CardContent>
