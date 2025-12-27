@@ -289,7 +289,7 @@ const Financial = () => {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold">Financeiro</h1>
-        <p className="text-muted-foreground">Acompanhe receitas, comissões e lucros por especialista</p>
+        <p className="text-muted-foreground">Acompanhe receitas, comissões e lucros por profissional</p>
       </div>
 
       {/* Date Filter */}
@@ -412,7 +412,7 @@ const Financial = () => {
       <Tabs defaultValue="general" className="space-y-4">
         <TabsList>
           <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="by-barber">Por Especialista</TabsTrigger>
+          <TabsTrigger value="by-barber">Por Profissional</TabsTrigger>
         </TabsList>
 
         {/* General Financial Tab */}
@@ -426,9 +426,9 @@ const Financial = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data</TableHead>
-                    <TableHead>Paciente</TableHead>
-                    <TableHead>Procedimento</TableHead>
-                    <TableHead>Especialista</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Serviço</TableHead>
+                    <TableHead>Profissional</TableHead>
                     <TableHead className="text-right">Valor</TableHead>
                     <TableHead className="text-right">Comissão</TableHead>
                   </TableRow>
@@ -468,18 +468,18 @@ const Financial = () => {
         <TabsContent value="by-barber" className="space-y-4">
           <Card className="shadow-elegant">
             <CardHeader>
-              <CardTitle>Desempenho por Especialista</CardTitle>
+              <CardTitle>Desempenho por Profissional</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Especialista</TableHead>
-                    <TableHead className="text-center">Procedimentos Realizados</TableHead>
+                    <TableHead>Profissional</TableHead>
+                    <TableHead className="text-center">Serviços Realizados</TableHead>
                     <TableHead className="text-right">Total Faturado</TableHead>
                     <TableHead className="text-center">Comissão (%)</TableHead>
                     <TableHead className="text-right">Comissão R$</TableHead>
-                    <TableHead className="text-right">Lucro Clínica</TableHead>
+                    <TableHead className="text-right">Lucro Líquido</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

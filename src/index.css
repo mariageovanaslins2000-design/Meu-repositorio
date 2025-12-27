@@ -143,9 +143,9 @@
     overflow-x: hidden;
   }
 
-  /* Tipografia com mais espaçamento */
+  /* Tipografia elegante com Playfair Display nos títulos */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-wide;
+    @apply font-display tracking-wide font-medium;
   }
 
   p {

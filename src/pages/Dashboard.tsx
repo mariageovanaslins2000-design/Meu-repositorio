@@ -35,15 +35,15 @@ const Dashboard = () => {
   };
 
   const statsCards = [
-    { title: "Consultas Hoje", value: loading ? "..." : stats.todayAppointments, icon: <Calendar className="w-8 h-8 text-primary" />, trend: { value: "Hoje", positive: true } },
+    { title: "Agendamentos Hoje", value: loading ? "..." : stats.todayAppointments, icon: <Calendar className="w-8 h-8 text-primary" />, trend: { value: "Hoje", positive: true } },
     { title: "Receita do Mês", value: loading ? "..." : `R$ ${stats.monthRevenue.toFixed(2)}`, icon: <DollarSign className="w-8 h-8 text-primary" />, trend: { value: "Mês atual", positive: true } },
-    { title: "Especialistas Ativos", value: loading ? "..." : stats.activeProfessionals, icon: <UserCheck className="w-8 h-8 text-primary" />, trend: { value: "Ativos", positive: true } },
-    { title: "Pacientes Ativos", value: loading ? "..." : stats.activeClients, icon: <Users className="w-8 h-8 text-primary" />, trend: { value: "Total", positive: true } },
+    { title: "Profissionais Ativos", value: loading ? "..." : stats.activeProfessionals, icon: <UserCheck className="w-8 h-8 text-primary" />, trend: { value: "Ativos", positive: true } },
+    { title: "Clientes Ativos", value: loading ? "..." : stats.activeClients, icon: <Users className="w-8 h-8 text-primary" />, trend: { value: "Total", positive: true } },
   ];
 
   return (
     <div className="space-y-8">
-      <div><h1 className="text-3xl font-display font-semibold">Dashboard</h1><p className="text-muted-foreground">Visão geral da sua clínica</p></div>
+      <div><h1 className="text-3xl font-display font-semibold">Dashboard</h1><p className="text-muted-foreground">Visão geral do seu negócio</p></div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">{statsCards.map((stat) => <StatCard key={stat.title} {...stat} />)}</div>
       {clinicId && <AppointmentsChart clinicId={clinicId} />}
     </div>

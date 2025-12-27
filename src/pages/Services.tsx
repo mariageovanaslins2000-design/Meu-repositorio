@@ -39,7 +39,7 @@ const Services = () => {
         if (error.code === "23503") {
           toast({
             title: "Não é possível excluir",
-            description: "Este procedimento está vinculado a consultas. Considere inativá-lo ao invés de excluir.",
+            description: "Este serviço está vinculado a agendamentos. Considere inativá-lo ao invés de excluir.",
             variant: "destructive",
           });
         } else {
@@ -47,8 +47,8 @@ const Services = () => {
         }
       } else {
         toast({
-          title: "Procedimento excluído",
-          description: `O procedimento "${serviceToDelete.name}" foi excluído com sucesso.`,
+          title: "Serviço excluído",
+          description: `O serviço "${serviceToDelete.name}" foi excluído com sucesso.`,
         });
         loadServices();
       }
@@ -56,7 +56,7 @@ const Services = () => {
       console.error("Error deleting service:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível excluir o procedimento.",
+        description: "Não foi possível excluir o serviço.",
         variant: "destructive",
       });
     } finally {
@@ -109,8 +109,8 @@ const Services = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Procedimentos</h1>
-          <p className="text-muted-foreground">Gerencie os procedimentos oferecidos</p>
+          <h1 className="text-3xl font-bold">Serviços</h1>
+          <p className="text-muted-foreground">Gerencie os serviços oferecidos</p>
         </div>
         <AddServiceDialog onServiceAdded={loadServices} />
       </div>
@@ -119,9 +119,9 @@ const Services = () => {
       {services.length === 0 ? (
         <Card className="p-12 text-center">
           <Briefcase className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Nenhum procedimento cadastrado</h3>
+          <h3 className="text-xl font-semibold mb-2">Nenhum serviço cadastrado</h3>
           <p className="text-muted-foreground mb-4">
-            Adicione procedimentos ao seu catálogo para começar
+            Adicione serviços ao seu catálogo para começar
           </p>
           <AddServiceDialog onServiceAdded={loadServices} />
         </Card>
@@ -179,7 +179,7 @@ const Services = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o procedimento "{serviceToDelete?.name}"? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o serviço "{serviceToDelete?.name}"? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
