@@ -285,33 +285,32 @@ const Financial = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Financeiro</h1>
-        <p className="text-muted-foreground">Acompanhe receitas, comissões e lucros por profissional</p>
+        <h1 className="text-xl font-medium">Financeiro</h1>
+        <p className="text-sm text-muted-foreground">Acompanhe receitas, comissões e lucros por profissional</p>
       </div>
 
       {/* Date Filter */}
       {canUseDateFilter ? (
-        <Card className="shadow-elegant">
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Filtrar por período:</span>
-              </div>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-medium">Filtrar:</span>
               
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    size="sm"
                     className={cn(
-                      "justify-start text-left font-normal",
+                      "justify-start text-left font-normal h-8 text-xs",
                       !startDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Data inicial"}
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {startDate ? format(startDate, "dd/MM/yyyy", { locale: ptBR }) : "Início"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -325,19 +324,20 @@ const Financial = () => {
                 </PopoverContent>
               </Popover>
 
-              <span className="text-muted-foreground">até</span>
+              <span className="text-xs text-muted-foreground">até</span>
 
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    size="sm"
                     className={cn(
-                      "justify-start text-left font-normal",
+                      "justify-start text-left font-normal h-8 text-xs",
                       !endDate && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Data final"}
+                    <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
+                    {endDate ? format(endDate, "dd/MM/yyyy", { locale: ptBR }) : "Fim"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -356,24 +356,24 @@ const Financial = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleClearFilters}
-                  className="h-9"
+                  className="h-8 text-xs"
                 >
-                  <X className="mr-2 h-4 w-4" />
-                  Limpar filtros
+                  <X className="mr-1.5 h-3.5 w-3.5" />
+                  Limpar
                 </Button>
               )}
             </div>
           </CardContent>
         </Card>
       ) : (
-        <Card className="shadow-elegant">
-          <CardContent className="pt-6">
+        <Card>
+          <CardContent className="p-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Lock className="w-4 h-4" />
-                <span className="text-sm">Filtro por período disponível no plano Premium</span>
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Lock className="w-3.5 h-3.5" />
+                <span className="text-xs">Filtro por período disponível no plano Premium</span>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setShowUpgradePrompt(true)}>
+              <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setShowUpgradePrompt(true)}>
                 Ver Planos
               </Button>
             </div>
@@ -389,19 +389,17 @@ const Financial = () => {
       />
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         {summary.map((item) => (
-          <Card key={item.label} className="shadow-elegant">
-            <CardContent className="p-6">
+          <Card key={item.label}>
+            <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">{item.label}</p>
-                  <p className="text-2xl font-bold">{item.value}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                  <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
+                  <p className="text-lg font-semibold">{item.value}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
                 </div>
-                <div className="text-3xl">
-                  <item.icon className="w-8 h-8 text-primary" />
-                </div>
+                <item.icon className="w-5 h-5 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -409,50 +407,50 @@ const Financial = () => {
       </div>
 
       {/* Tabs for General and By Specialist */}
-      <Tabs defaultValue="general" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="by-barber">Por Profissional</TabsTrigger>
+      <Tabs defaultValue="general" className="space-y-3">
+        <TabsList className="h-9">
+          <TabsTrigger value="general" className="text-xs">Geral</TabsTrigger>
+          <TabsTrigger value="by-barber" className="text-xs">Por Profissional</TabsTrigger>
         </TabsList>
 
         {/* General Financial Tab */}
-        <TabsContent value="general" className="space-y-4">
-          <Card className="shadow-elegant">
-            <CardHeader>
-              <CardTitle>Transações Recentes</CardTitle>
+        <TabsContent value="general" className="space-y-3">
+          <Card>
+            <CardHeader className="p-4 pb-3">
+              <CardTitle className="text-base font-medium">Transações Recentes</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Serviço</TableHead>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Comissão</TableHead>
+                    <TableHead className="text-xs">Data</TableHead>
+                    <TableHead className="text-xs">Cliente</TableHead>
+                    <TableHead className="text-xs">Serviço</TableHead>
+                    <TableHead className="text-xs">Profissional</TableHead>
+                    <TableHead className="text-xs text-right">Valor</TableHead>
+                    <TableHead className="text-xs text-right">Comissão</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {transactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center text-xs text-muted-foreground">
                         Nenhuma transação encontrada
                       </TableCell>
                     </TableRow>
                   ) : (
                     transactions.map((transaction) => (
                       <TableRow key={transaction.id}>
-                        <TableCell>
+                        <TableCell className="text-xs">
                           {new Date(transaction.date).toLocaleDateString('pt-BR')}
                         </TableCell>
-                        <TableCell className="font-medium">{transaction.client}</TableCell>
-                        <TableCell>{transaction.service}</TableCell>
-                        <TableCell>{transaction.barber}</TableCell>
-                        <TableCell className="text-right font-medium">
+                        <TableCell className="text-xs font-medium">{transaction.client}</TableCell>
+                        <TableCell className="text-xs">{transaction.service}</TableCell>
+                        <TableCell className="text-xs">{transaction.barber}</TableCell>
+                        <TableCell className="text-xs text-right font-medium">
                           R$ {transaction.value.toFixed(2)}
                         </TableCell>
-                        <TableCell className="text-right text-accent">
+                        <TableCell className="text-xs text-right text-accent">
                           R$ {transaction.commission.toFixed(2)}
                         </TableCell>
                       </TableRow>
@@ -465,27 +463,27 @@ const Financial = () => {
         </TabsContent>
 
         {/* By Specialist Financial Tab */}
-        <TabsContent value="by-barber" className="space-y-4">
-          <Card className="shadow-elegant">
-            <CardHeader>
-              <CardTitle>Desempenho por Profissional</CardTitle>
+        <TabsContent value="by-barber" className="space-y-3">
+          <Card>
+            <CardHeader className="p-4 pb-3">
+              <CardTitle className="text-base font-medium">Desempenho por Profissional</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 pt-0">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead className="text-center">Serviços Realizados</TableHead>
-                    <TableHead className="text-right">Total Faturado</TableHead>
-                    <TableHead className="text-center">Comissão (%)</TableHead>
-                    <TableHead className="text-right">Comissão R$</TableHead>
-                    <TableHead className="text-right">Lucro Líquido</TableHead>
+                    <TableHead className="text-xs">Profissional</TableHead>
+                    <TableHead className="text-xs text-center">Serviços</TableHead>
+                    <TableHead className="text-xs text-right">Faturado</TableHead>
+                    <TableHead className="text-xs text-center">%</TableHead>
+                    <TableHead className="text-xs text-right">Comissão</TableHead>
+                    <TableHead className="text-xs text-right">Lucro</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {barberFinancials.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center text-xs text-muted-foreground">
                         Nenhum dado encontrado
                       </TableCell>
                     </TableRow>

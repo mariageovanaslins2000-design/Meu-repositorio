@@ -148,52 +148,58 @@ const Settings = () => {
   if (subscriptionLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Configurações</h1>
-          <p className="text-muted-foreground">Personalize seu sistema</p>
+          <h1 className="text-xl font-medium">Configurações</h1>
+          <p className="text-sm text-muted-foreground">Personalize seu sistema</p>
         </div>
         <PlanBadge planName={plan?.name || null} />
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="shadow-elegant">
-          <CardHeader><CardTitle className="flex items-center gap-2"><User className="w-5 h-5" />Informações do Negócio</CardTitle><CardDescription>Dados principais do seu estabelecimento</CardDescription></CardHeader>
-          <CardContent className="space-y-4">
-            <div><Label>Nome do Estabelecimento</Label><Input value={clinic.name} onChange={(e) => setClinic({ ...clinic, name: e.target.value })} placeholder="Meu Negócio" /></div>
-            <div><Label>Telefone</Label><Input value={clinic.phone} onChange={(e) => setClinic({ ...clinic, phone: e.target.value })} placeholder="(11) 98765-4321" /></div>
-            <div><Label>Endereço</Label><Input value={clinic.address} onChange={(e) => setClinic({ ...clinic, address: e.target.value })} placeholder="Rua Example, 123" /></div>
-            <Button className="w-full" onClick={handleSave} disabled={loading}>{loading ? "Salvando..." : "Salvar Alterações"}</Button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="p-4 pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-medium"><User className="w-4 h-4" />Informações do Negócio</CardTitle>
+            <CardDescription className="text-xs">Dados principais do seu estabelecimento</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-3">
+            <div className="space-y-1.5"><Label className="text-xs">Nome do Estabelecimento</Label><Input value={clinic.name} onChange={(e) => setClinic({ ...clinic, name: e.target.value })} placeholder="Meu Negócio" className="h-9" /></div>
+            <div className="space-y-1.5"><Label className="text-xs">Telefone</Label><Input value={clinic.phone} onChange={(e) => setClinic({ ...clinic, phone: e.target.value })} placeholder="(11) 98765-4321" className="h-9" /></div>
+            <div className="space-y-1.5"><Label className="text-xs">Endereço</Label><Input value={clinic.address} onChange={(e) => setClinic({ ...clinic, address: e.target.value })} placeholder="Rua Example, 123" className="h-9" /></div>
+            <Button className="w-full h-9 text-sm" onClick={handleSave} disabled={loading}>{loading ? "Salvando..." : "Salvar Alterações"}</Button>
           </CardContent>
         </Card>
         
-        <Card className="shadow-elegant">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Image className="w-5 h-5" />Logo</CardTitle><CardDescription>Logo do seu estabelecimento</CardDescription></CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <Label>Logo Principal</Label>
+        <Card>
+          <CardHeader className="p-4 pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-medium"><Image className="w-4 h-4" />Logo</CardTitle>
+            <CardDescription className="text-xs">Logo do seu estabelecimento</CardDescription>
+          </CardHeader>
+          <CardContent className="p-4 pt-0 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs">Logo Principal</Label>
               <p className="text-xs text-muted-foreground">Tamanho recomendado: 200x200 pixels</p>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
                 {clinic.logo_url ? (
-                  <div className="w-20 h-20 rounded-lg overflow-hidden border bg-background">
+                  <div className="w-14 h-14 rounded-lg overflow-hidden border bg-background">
                     <img src={clinic.logo_url} alt="Logo" className="w-full h-full object-contain" />
                   </div>
                 ) : (
-                  <div className="w-20 h-20 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
-                    <Image className="w-8 h-8 text-muted-foreground" />
+                  <div className="w-14 h-14 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
+                    <Image className="w-6 h-6 text-muted-foreground" />
                   </div>
                 )}
                 <div className="flex-1">
                   <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
-                  <Button type="button" variant="outline" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="w-full">
-                    <Upload className="w-4 h-4 mr-2" />{uploadingLogo ? "Enviando..." : "Enviar Logo"}
+                  <Button type="button" variant="outline" size="sm" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="w-full h-8 text-xs">
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />{uploadingLogo ? "Enviando..." : "Enviar Logo"}
                   </Button>
                 </div>
               </div>
@@ -202,42 +208,44 @@ const Settings = () => {
         </Card>
             
         
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Upload className="w-5 h-5" />Cores e Identidade</CardTitle>
-            <CardDescription>Personalize a aparência do seu sistema</CardDescription>
+        <Card>
+          <CardHeader className="p-4 pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-medium"><Upload className="w-4 h-4" />Cores e Identidade</CardTitle>
+            <CardDescription className="text-xs">Personalize a aparência do seu sistema</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <Label>Cores do Tema</Label>
-              <div className="flex gap-4">
+          <CardContent className="p-4 pt-0 space-y-3">
+            <div className="space-y-2">
+              <Label className="text-xs">Cores do Tema</Label>
+              <div className="flex gap-3">
                 <div className="flex-1">
-                  <Label className="text-xs">Cor Primária</Label>
-                  <div className="flex gap-2 mt-1">
+                  <Label className="text-xs text-muted-foreground">Primária</Label>
+                  <div className="flex gap-1.5 mt-1">
                     <Input 
                       type="color" 
                       value={clinic.primary_color} 
                       onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} 
-                      className="w-12 h-10 p-1 cursor-pointer" 
+                      className="w-10 h-8 p-1 cursor-pointer" 
                     />
                     <Input 
                       value={clinic.primary_color} 
-                      onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} 
+                      onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })}
+                      className="h-8 text-xs"
                     />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <Label className="text-xs">Cor Secundária</Label>
-                  <div className="flex gap-2 mt-1">
+                  <Label className="text-xs text-muted-foreground">Secundária</Label>
+                  <div className="flex gap-1.5 mt-1">
                     <Input 
                       type="color" 
                       value={clinic.secondary_color} 
                       onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })} 
-                      className="w-12 h-10 p-1 cursor-pointer"
+                      className="w-10 h-8 p-1 cursor-pointer"
                     />
                     <Input 
                       value={clinic.secondary_color} 
                       onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })}
+                      className="h-8 text-xs"
                     />
                   </div>
                 </div>
@@ -246,37 +254,37 @@ const Settings = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Clock className="w-5 h-5" />Horário de Funcionamento</CardTitle>
-            <CardDescription>Configure o expediente da sua agenda</CardDescription>
+        <Card>
+          <CardHeader className="p-4 pb-3">
+            <CardTitle className="flex items-center gap-2 text-base font-medium"><Clock className="w-4 h-4" />Horário de Funcionamento</CardTitle>
+            <CardDescription className="text-xs">Configure o expediente da sua agenda</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Abre às</Label>
+          <CardContent className="p-4 pt-0 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Abre às</Label>
                 <Select value={clinic.opening_time} onValueChange={(v) => setClinic({ ...clinic, opening_time: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Fecha às</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Fecha às</Label>
                 <Select value={clinic.closing_time} onValueChange={(v) => setClinic({ ...clinic, closing_time: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-3">
-              <Label>Dias de funcionamento</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs">Dias de funcionamento</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {DAYS_OF_WEEK.map((day) => (
-                  <div key={day.value} className="flex items-center gap-2">
+                  <div key={day.value} className="flex items-center gap-1.5">
                     <Checkbox 
                       id={`day-${day.value}`}
                       checked={clinic.working_days.includes(day.value)}
@@ -289,37 +297,37 @@ const Settings = () => {
                         });
                       }}
                     />
-                    <Label htmlFor={`day-${day.value}`} className="text-sm cursor-pointer">{day.label}</Label>
+                    <Label htmlFor={`day-${day.value}`} className="text-xs cursor-pointer">{day.label}</Label>
                   </div>
                 ))}
               </div>
             </div>
             
             {clinic.working_days.includes(6) && (
-              <div className="border-t pt-4 space-y-3">
-                <Label className="text-sm font-medium">Horário especial para Sábado</Label>
+              <div className="border-t pt-3 space-y-2">
+                <Label className="text-xs font-medium">Horário especial para Sábado</Label>
                 <p className="text-xs text-muted-foreground">Deixe em branco para usar o horário padrão</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
                     <Label className="text-xs">Abre às</Label>
                     <Select 
                       value={clinic.saturday_opening_time || "__default__"} 
                       onValueChange={(v) => setClinic({ ...clinic, saturday_opening_time: v === "__default__" ? "" : v })}
                     >
-                      <SelectTrigger><SelectValue placeholder="Padrão" /></SelectTrigger>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Padrão" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__default__">Usar padrão</SelectItem>
                         {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <Label className="text-xs">Fecha às</Label>
                     <Select 
                       value={clinic.saturday_closing_time || "__default__"} 
                       onValueChange={(v) => setClinic({ ...clinic, saturday_closing_time: v === "__default__" ? "" : v })}
                     >
-                      <SelectTrigger><SelectValue placeholder="Padrão" /></SelectTrigger>
+                      <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Padrão" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__default__">Usar padrão</SelectItem>
                         {TIME_OPTIONS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
@@ -334,11 +342,11 @@ const Settings = () => {
         
         <ClientLinkGenerator />
         
-        <Card className="shadow-elegant">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Notificações</CardTitle><CardDescription>Configure alertas</CardDescription></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Novos Agendamentos</p><p className="text-sm text-muted-foreground">Receba alertas</p></div><Switch defaultChecked /></div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Lembretes de Cliente</p><p className="text-sm text-muted-foreground">Enviar lembretes automáticos</p></div><Switch defaultChecked /></div>
+        <Card>
+          <CardHeader className="p-4 pb-3"><CardTitle className="flex items-center gap-2 text-base font-medium"><Bell className="w-4 h-4" />Notificações</CardTitle><CardDescription className="text-xs">Configure alertas</CardDescription></CardHeader>
+          <CardContent className="p-4 pt-0 space-y-2">
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50"><div className="flex-1"><p className="text-sm font-medium">Novos Agendamentos</p><p className="text-xs text-muted-foreground">Receba alertas</p></div><Switch defaultChecked /></div>
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/50"><div className="flex-1"><p className="text-sm font-medium">Lembretes de Cliente</p><p className="text-xs text-muted-foreground">Enviar lembretes automáticos</p></div><Switch defaultChecked /></div>
           </CardContent>
         </Card>
       </div>

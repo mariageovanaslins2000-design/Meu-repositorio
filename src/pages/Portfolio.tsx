@@ -169,7 +169,7 @@ const Portfolio = () => {
   if (loading || subscriptionLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -177,19 +177,19 @@ const Portfolio = () => {
   // Block access for plans without portfolio
   if (!hasPortfolioAccess()) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-5">
         <div>
-          <h1 className="text-3xl font-bold">Portfólio</h1>
-          <p className="text-muted-foreground">Mostre seus melhores trabalhos</p>
+          <h1 className="text-xl font-medium">Portfólio</h1>
+          <p className="text-sm text-muted-foreground">Mostre seus melhores trabalhos</p>
         </div>
         
-        <Card className="p-12 text-center">
-          <Lock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Portfólio não disponível</h3>
-          <p className="text-muted-foreground mb-4">
+        <Card className="p-8 text-center">
+          <Lock className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <h3 className="text-base font-medium mb-1">Portfólio não disponível</h3>
+          <p className="text-sm text-muted-foreground mb-3">
             O portfólio está disponível nos planos Profissional e Premium.
           </p>
-          <Button onClick={() => setShowUpgradePrompt(true)}>
+          <Button size="sm" onClick={() => setShowUpgradePrompt(true)}>
             Ver Planos
           </Button>
         </Card>
@@ -207,19 +207,20 @@ const Portfolio = () => {
   const limits = getPortfolioLimit();
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Portfólio</h1>
-          <p className="text-muted-foreground">Mostre seus melhores trabalhos</p>
+          <h1 className="text-xl font-medium">Portfólio</h1>
+          <p className="text-sm text-muted-foreground">Mostre seus melhores trabalhos</p>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <PlanLimitIndicator current={limits.current} max={limits.max} label="Imagens" />
           
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button
+                size="sm"
                 onClick={(e) => {
                   if (!canAddPortfolioImage()) {
                     e.preventDefault();
@@ -227,44 +228,47 @@ const Portfolio = () => {
                   }
                 }}
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Adicionar Imagem
+                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                Adicionar
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Adicionar ao Portfólio</DialogTitle>
+                <DialogTitle className="text-base">Adicionar ao Portfólio</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Título (opcional)</Label>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="title" className="text-sm">Título (opcional)</Label>
                   <Input
                     id="title"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Ex: Corte Degradê"
+                    className="h-9"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Descrição (opcional)</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="description" className="text-sm">Descrição (opcional)</Label>
                   <Textarea
                     id="description"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Descreva o trabalho..."
-                    rows={3}
+                    rows={2}
+                    className="text-sm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Imagem</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Imagem</Label>
                   <Button
                     type="button"
                     variant="outline"
+                    size="sm"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploading}
                     className="w-full"
                   >
-                    <Upload className="w-4 h-4 mr-2" />
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />
                     {uploading ? "Enviando..." : "Escolher Imagem"}
                   </Button>
                   <input
@@ -282,17 +286,17 @@ const Portfolio = () => {
       </div>
 
       {images.length === 0 ? (
-        <Card className="p-12 text-center">
-          <ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Nenhuma imagem no portfólio</h3>
-          <p className="text-muted-foreground mb-4">
+        <Card className="p-8 text-center">
+          <ImageIcon className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
+          <h3 className="text-base font-medium mb-1">Nenhuma imagem no portfólio</h3>
+          <p className="text-sm text-muted-foreground mb-3">
             Adicione fotos dos seus melhores trabalhos
           </p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {images.map((image) => (
-            <Card key={image.id} className="group relative overflow-hidden shadow-elegant hover:shadow-xl transition-all">
+            <Card key={image.id} className="group relative overflow-hidden hover:shadow-md transition-all">
               <CardContent className="p-0">
                 <div className="relative aspect-square">
                   <img
@@ -305,19 +309,20 @@ const Portfolio = () => {
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(image)}
+                      className="h-8 text-xs"
                     >
-                      <X className="w-4 h-4 mr-2" />
+                      <X className="w-3.5 h-3.5 mr-1.5" />
                       Remover
                     </Button>
                   </div>
                 </div>
                 {(image.title || image.description) && (
-                  <div className="p-4">
+                  <div className="p-3">
                     {image.title && (
-                      <h3 className="font-semibold mb-1">{image.title}</h3>
+                      <h3 className="text-sm font-medium mb-0.5">{image.title}</h3>
                     )}
                     {image.description && (
-                      <p className="text-sm text-muted-foreground">{image.description}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{image.description}</p>
                     )}
                   </div>
                 )}
