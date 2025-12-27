@@ -32,12 +32,12 @@ export function AdminLayout() {
   useClinicTheme(clinicId);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-background">
       <Sidebar />
       <MobileSidebar />
-      <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+      <div className="flex-1 lg:ml-64 pt-16 lg:pt-0 w-full max-w-full overflow-x-hidden">
         <Header />
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 w-full max-w-full overflow-x-hidden">
           <Outlet />
         </main>
       </div>

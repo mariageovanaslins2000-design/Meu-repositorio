@@ -8,10 +8,12 @@ export function ClientLayout() {
   useClinicTheme(clinicId || undefined);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background">
       <ClientHeader />
-      <main className="container mx-auto px-4 py-6">
-        <Outlet />
+      <main className="w-full max-w-full px-4 py-6 overflow-x-hidden">
+        <div className="container mx-auto">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
