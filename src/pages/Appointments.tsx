@@ -447,8 +447,8 @@ const Appointments = () => {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold font-display">Agendamentos</h1>
-        <p className="text-muted-foreground">Gerencie todos os agendamentos por profissional</p>
+        <h1 className="text-3xl font-bold font-display">Agenda</h1>
+        <p className="text-muted-foreground">Gerencie todas as consultas por especialista</p>
       </div>
 
       {/* Period Filter */}

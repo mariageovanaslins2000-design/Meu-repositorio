@@ -51,7 +51,7 @@ export default function ClientBooking() {
         .single();
 
       if (!linkData) {
-        toast.error("Você não está vinculado a nenhuma barbearia");
+        toast.error("Você não está vinculado a nenhuma clínica");
         return;
       }
 
@@ -75,13 +75,13 @@ export default function ClientBooking() {
 
         if (servicesError) {
           console.error("Error loading services:", servicesError);
-          toast.error("Erro ao carregar serviços");
+          toast.error("Erro ao carregar procedimentos");
         } else {
           console.log("Services loaded:", servicesData?.length || 0);
           setServices(servicesData || []);
         }
 
-        // Load barbers - filter explicitly by barbershop_id
+        // Load specialists - filter explicitly by barbershop_id
         const { data: barbersData, error: barbersError } = await supabase
           .from("barbers")
           .select("*")
@@ -90,10 +90,10 @@ export default function ClientBooking() {
           .order("name");
 
         if (barbersError) {
-          console.error("Error loading barbers:", barbersError);
-          toast.error("Erro ao carregar barbeiros");
+          console.error("Error loading specialists:", barbersError);
+          toast.error("Erro ao carregar especialistas");
         } else {
-          console.log("Barbers loaded:", barbersData?.length || 0);
+          console.log("Specialists loaded:", barbersData?.length || 0);
           setBarbers(barbersData || []);
         }
       }
@@ -215,7 +215,7 @@ export default function ClientBooking() {
       if (clientError) throw clientError;
 
       if (!clientData) {
-        toast.error("Você não está cadastrado como cliente nesta barbearia");
+        toast.error("Você não está cadastrado como paciente nesta clínica");
         return;
       }
 
@@ -291,11 +291,11 @@ export default function ClientBooking() {
       
       console.log('Lembrete agendado para 5 minutos');
 
-      toast.success("Agendamento realizado com sucesso!");
+      toast.success("Consulta agendada com sucesso!");
       navigate("/client/appointments");
     } catch (error) {
       console.error("Error creating appointment:", error);
-      toast.error("Erro ao criar agendamento");
+      toast.error("Erro ao criar consulta");
     } finally {
       setLoading(false);
       setTimeout(() => setIsSubmitting(false), 2000);
@@ -305,7 +305,7 @@ export default function ClientBooking() {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Novo Agendamento</h1>
+        <h1 className="text-3xl font-bold mb-2">Nova Consulta</h1>
         <p className="text-muted-foreground">Siga os passos para agendar seu horário</p>
       </div>
 
@@ -330,12 +330,12 @@ export default function ClientBooking() {
       {/* Step 1: Select Service */}
       {step === 1 && (
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Escolha o Serviço</h2>
+          <h2 className="text-2xl font-bold">Escolha o Procedimento</h2>
           {services.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
-                <p>Nenhum serviço disponível no momento.</p>
-                <p className="text-sm mt-2">Entre em contato com a barbearia.</p>
+                <p>Nenhum procedimento disponível no momento.</p>
+                <p className="text-sm mt-2">Entre em contato com a clínica.</p>
               </CardContent>
             </Card>
           ) : (
@@ -368,15 +368,15 @@ export default function ClientBooking() {
         </div>
       )}
 
-      {/* Step 2: Select Barber */}
+      {/* Step 2: Select Specialist */}
       {step === 2 && (
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Escolha o Barbeiro</h2>
+          <h2 className="text-2xl font-bold">Escolha o Especialista</h2>
           {barbers.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
-                <p>Nenhum barbeiro disponível no momento.</p>
-                <p className="text-sm mt-2">Entre em contato com a barbearia.</p>
+                <p>Nenhum especialista disponível no momento.</p>
+                <p className="text-sm mt-2">Entre em contato com a clínica.</p>
               </CardContent>
             </Card>
           ) : (

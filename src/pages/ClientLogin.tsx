@@ -169,9 +169,9 @@ export default function ClientLogin() {
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl">Login de Cliente</CardTitle>
+          <CardTitle className="text-2xl">Login de Paciente</CardTitle>
           <CardDescription>
-            {barbershopName ? `Acesse sua conta em ${barbershopName}` : "Acesse sua conta para agendar horários"}
+            {barbershopName ? `Acesse sua conta em ${barbershopName}` : "Acesse sua conta para agendar consultas"}
           </CardDescription>
         </CardHeader>
         <CardContent>

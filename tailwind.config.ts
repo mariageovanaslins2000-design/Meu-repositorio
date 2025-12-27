@@ -14,8 +14,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Poppins', 'system-ui', 'sans-serif'],
-        display: ['Playfair Display', 'serif'],
+        sans: ['Manrope', 'system-ui', 'sans-serif'],
+        display: ['Poppins', 'system-ui', 'sans-serif'],
+        label: ['Inter', 'system-ui', 'sans-serif'],
       },
       lineHeight: {
         'relaxed': '1.75',
