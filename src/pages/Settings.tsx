@@ -40,17 +40,14 @@ const Settings = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [uploadingSidebarLogo, setUploadingSidebarLogo] = useState(false);
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState("");
   const logoInputRef = useRef<HTMLInputElement>(null);
-  const sidebarLogoInputRef = useRef<HTMLInputElement>(null);
   const [clinic, setClinic] = useState({ 
     name: "", 
     phone: "", 
     address: "", 
     logo_url: "", 
-    logo_sidebar_url: "",
     primary_color: "#D4AF37", 
     secondary_color: "#1A1A1A",
     opening_time: "09:00",
@@ -73,8 +70,7 @@ const Settings = () => {
         name: data.name || "", 
         phone: data.phone || "", 
         address: data.address || "", 
-        logo_url: data.logo_url || "", 
-        logo_sidebar_url: data.logo_sidebar_url || "",
+        logo_url: data.logo_url || "",
         primary_color: data.primary_color || "#D4AF37", 
         secondary_color: data.secondary_color || "#1A1A1A",
         opening_time: data.opening_time?.slice(0, 5) || "09:00",
@@ -86,20 +82,19 @@ const Settings = () => {
     } catch { }
   };
 
-  const uploadLogo = async (file: File, type: 'main' | 'sidebar') => {
+  const uploadLogo = async (file: File) => {
     if (!user) return null;
     const { data: clinicData } = await supabase.from("barbershops").select("id").eq("owner_id", user.id).single();
     if (!clinicData) return null;
     
     try {
-      const currentUrl = type === 'main' ? clinic.logo_url : clinic.logo_sidebar_url;
-      if (currentUrl) {
-        const oldPath = currentUrl.split("/").pop();
+      if (clinic.logo_url) {
+        const oldPath = clinic.logo_url.split("/").pop();
         if (oldPath) await supabase.storage.from("logos").remove([`${clinicData.id}/${oldPath}`]);
       }
       
       const fileExt = file.name.split(".").pop();
-      const fileName = `${clinicData.id}/${type}-logo-${Date.now()}.${fileExt}`;
+      const fileName = `${clinicData.id}/main-logo-${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage.from("logos").upload(fileName, file, { cacheControl: "3600", upsert: true });
       if (uploadError) throw uploadError;
       
@@ -116,32 +111,14 @@ const Settings = () => {
     if (!file) return;
     
     setUploadingLogo(true);
-    const url = await uploadLogo(file, 'main');
+    const url = await uploadLogo(file);
     if (url) {
       setClinic({ ...clinic, logo_url: url });
-      toast.success("Logo principal enviada!");
+      toast.success("Logo enviada!");
     }
     setUploadingLogo(false);
   };
 
-  const handleSidebarLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!hasFeature('custom_colors')) {
-      setUpgradeFeature("custom_colors");
-      setShowUpgradePrompt(true);
-      return;
-    }
-    
-    setUploadingSidebarLogo(true);
-    const url = await uploadLogo(file, 'sidebar');
-    if (url) {
-      setClinic({ ...clinic, logo_sidebar_url: url });
-      toast.success("Logo da sidebar enviada!");
-    }
-    setUploadingSidebarLogo(false);
-  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -152,8 +129,7 @@ const Settings = () => {
         phone: clinic.phone, 
         address: clinic.address, 
         logo_url: clinic.logo_url, 
-        logo_sidebar_url: clinic.logo_sidebar_url,
-        primary_color: clinic.primary_color, 
+        primary_color: clinic.primary_color,
         secondary_color: clinic.secondary_color,
         opening_time: clinic.opening_time,
         closing_time: clinic.closing_time,
@@ -199,15 +175,15 @@ const Settings = () => {
         </Card>
         
         <Card className="shadow-elegant">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Image className="w-5 h-5" />Logos</CardTitle><CardDescription>Gerencie as logos do sistema</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Image className="w-5 h-5" />Logo</CardTitle><CardDescription>Logo do seu estabelecimento</CardDescription></CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-3">
-              <Label>Logo Principal (Login/Cadastro)</Label>
-              <p className="text-xs text-muted-foreground">Usada em fundos claros</p>
+              <Label>Logo Principal</Label>
+              <p className="text-xs text-muted-foreground">Tamanho recomendado: 200x200 pixels</p>
               <div className="flex items-center gap-4">
                 {clinic.logo_url ? (
                   <div className="w-20 h-20 rounded-lg overflow-hidden border bg-background">
-                    <img src={clinic.logo_url} alt="Logo Principal" className="w-full h-full object-contain" />
+                    <img src={clinic.logo_url} alt="Logo" className="w-full h-full object-contain" />
                   </div>
                 ) : (
                   <div className="w-20 h-20 rounded-lg border border-dashed flex items-center justify-center bg-muted/50">
@@ -222,48 +198,9 @@ const Settings = () => {
                 </div>
               </div>
             </div>
-            
-            <div className="border-t pt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label>Logo da Sidebar (Menu Lateral)</Label>
-                {!canEditColors && <Lock className="w-4 h-4 text-muted-foreground" />}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {canEditColors ? "Usada no fundo verde do menu" : "Disponível nos planos Profissional e Premium"}
-              </p>
-              <div className="flex items-center gap-4">
-                {clinic.logo_sidebar_url ? (
-                  <div className="w-20 h-20 rounded-lg overflow-hidden border bg-sidebar">
-                    <img src={clinic.logo_sidebar_url} alt="Logo Sidebar" className="w-full h-full object-contain" />
-                  </div>
-                ) : (
-                  <div className="w-20 h-20 rounded-lg border border-dashed flex items-center justify-center bg-sidebar">
-                    <Image className="w-8 h-8 text-sidebar-foreground/50" />
-                  </div>
-                )}
-                <div className="flex-1">
-                  <input ref={sidebarLogoInputRef} type="file" accept="image/*" onChange={handleSidebarLogoUpload} className="hidden" />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => {
-                      if (!canEditColors) {
-                        setUpgradeFeature("custom_colors");
-                        setShowUpgradePrompt(true);
-                      } else {
-                        sidebarLogoInputRef.current?.click();
-                      }
-                    }} 
-                    disabled={uploadingSidebarLogo} 
-                    className="w-full"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />{uploadingSidebarLogo ? "Enviando..." : "Enviar Logo"}
-                  </Button>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
+            
         
         <Card className="shadow-elegant">
           <CardHeader>
