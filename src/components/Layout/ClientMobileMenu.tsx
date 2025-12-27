@@ -31,8 +31,8 @@ export function ClientMobileMenu() {
         </SheetTrigger>
         <SheetContent side="left" className="w-64">
           <div className="flex flex-col h-full">
-            <div className="pb-6 border-b">
-              <span className="text-lg font-medium text-foreground">Menu</span>
+            <div className="pb-4 border-b">
+              <span className="text-base font-medium text-foreground">Menu</span>
             </div>
 
             <nav className="flex-1 py-6">

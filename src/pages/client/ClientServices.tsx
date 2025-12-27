@@ -39,37 +39,37 @@ export default function ClientServices() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Nossos Serviços</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-medium mb-1">Nossos Serviços</h1>
+        <p className="text-sm text-muted-foreground">
           Confira todos os serviços disponíveis
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {services.map((service) => (
-          <Card key={service.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle>{service.name}</CardTitle>
-              <CardDescription>{service.description}</CardDescription>
+          <Card key={service.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-base font-medium">{service.name}</CardTitle>
+              <CardDescription className="text-sm">{service.description}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-4 pt-2 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Preço</p>
-                  <p className="text-2xl font-bold">R$ {Number(service.price).toFixed(2)}</p>
+                  <p className="text-xs text-muted-foreground">Preço</p>
+                  <p className="text-lg font-semibold">R$ {Number(service.price).toFixed(2)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Duração</p>
+                  <p className="text-xs text-muted-foreground">Duração</p>
                   <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    <p className="font-medium">{service.duration_minutes} min</p>
+                    <Clock className="h-3 w-3" />
+                    <p className="text-sm font-medium">{service.duration_minutes} min</p>
                   </div>
                 </div>
               </div>
 
-              <Button asChild className="w-full">
+              <Button asChild size="sm" className="w-full">
                 <Link to="/client/booking">
                   Agendar
                 </Link>

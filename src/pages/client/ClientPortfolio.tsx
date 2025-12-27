@@ -50,25 +50,25 @@ export default function ClientPortfolio() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Portfólio</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-medium mb-1">Portfólio</h1>
+        <p className="text-sm text-muted-foreground">
           Conheça nossos trabalhos e inspire-se para seu próximo visual
         </p>
       </div>
 
       {images.length === 0 ? (
-        <Card className="p-12 text-center">
-          <ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Nenhuma imagem disponível</p>
+        <Card className="p-8 text-center">
+          <ImageIcon className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Nenhuma imagem disponível</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {images.map((image) => (
             <Card
               key={image.id}
-              className="group cursor-pointer overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+              className="group cursor-pointer overflow-hidden hover:shadow-lg transition-all duration-300"
               onClick={() => setSelectedImage(image)}
             >
               <CardContent className="p-0">
@@ -76,15 +76,15 @@ export default function ClientPortfolio() {
                   <img
                     src={image.image_url}
                     alt={image.title || "Portfolio image"}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                   {(image.title || image.description) && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
                       {image.title && (
-                        <h3 className="font-semibold text-white mb-1">{image.title}</h3>
+                        <h3 className="text-sm font-medium text-white mb-0.5">{image.title}</h3>
                       )}
                       {image.description && (
-                        <p className="text-sm text-white/90 line-clamp-2">{image.description}</p>
+                        <p className="text-xs text-white/90 line-clamp-2">{image.description}</p>
                       )}
                     </div>
                   )}

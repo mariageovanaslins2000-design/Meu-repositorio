@@ -129,62 +129,62 @@ export default function ClientAppointments() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Minhas Consultas</h1>
-        <p className="text-muted-foreground">
-          Visualize e gerencie suas consultas
+        <h1 className="text-xl font-medium mb-1">Meus Agendamentos</h1>
+        <p className="text-sm text-muted-foreground">
+          Visualize e gerencie seus agendamentos
         </p>
       </div>
 
       {appointments.length === 0 ? (
         <Card>
-          <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground mb-4">
-              Você não tem consultas ainda
+          <CardContent className="py-6 text-center">
+            <p className="text-sm text-muted-foreground mb-3">
+              Você não tem agendamentos ainda
             </p>
-            <Button asChild>
-              <a href="/client/booking">Agendar Consulta</a>
+            <Button asChild size="sm">
+              <a href="/client/booking">Fazer Agendamento</a>
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {appointments.map((appointment) => (
             <Card key={appointment.id}>
-              <CardHeader>
+              <CardHeader className="p-4 pb-2">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle>{appointment.services.name}</CardTitle>
-                    <CardDescription>{appointment.barbershops.name}</CardDescription>
+                    <CardTitle className="text-base font-medium">{appointment.services.name}</CardTitle>
+                    <CardDescription className="text-sm">{appointment.barbershops.name}</CardDescription>
                   </div>
                   {getStatusBadge(appointment.status)}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm">
+              <CardContent className="p-4 pt-0">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 text-sm">
                     <div className="flex items-center gap-1">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span>{appointment.barbers.name}</span>
+                      <User className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm">{appointment.barbers.name}</span>
                       {appointment.barbers.specialty && (
-                        <span className="text-muted-foreground">
+                        <span className="text-xs text-muted-foreground">
                           • {appointment.barbers.specialty}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-3 text-sm">
                     <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>
+                      <Calendar className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm">
                         {format(new Date(appointment.appointment_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{format(new Date(appointment.appointment_date), "HH:mm")}</span>
+                      <Clock className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-sm">{format(new Date(appointment.appointment_date), "HH:mm")}</span>
                     </div>
                   </div>
 
@@ -197,8 +197,8 @@ export default function ClientAppointments() {
 
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div>
-                      <span className="text-sm text-muted-foreground">Valor: </span>
-                      <span className="font-bold text-lg">
+                      <span className="text-xs text-muted-foreground">Valor: </span>
+                      <span className="font-semibold text-sm">
                         R$ {Number(appointment.services.price).toFixed(2)}
                       </span>
                     </div>
@@ -209,7 +209,7 @@ export default function ClientAppointments() {
                         size="sm"
                         onClick={() => setCancelDialog({ open: true, appointmentId: appointment.id })}
                       >
-                        <X className="h-4 w-4 mr-1" />
+                        <X className="h-3 w-3 mr-1" />
                         Cancelar
                       </Button>
                     )}
@@ -227,9 +227,9 @@ export default function ClientAppointments() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Consulta</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja cancelar esta consulta? Esta ação não pode ser desfeita.
+            <AlertDialogTitle className="text-base font-medium">Cancelar Agendamento</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
