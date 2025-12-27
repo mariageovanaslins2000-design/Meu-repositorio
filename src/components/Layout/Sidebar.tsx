@@ -38,14 +38,14 @@ export const Sidebar = () => {
       
       const { data } = await supabase
         .from("barbershops")
-        .select("name, logo_sidebar_url")
+        .select("name, logo_url")
         .eq("owner_id", user.id)
         .single();
       
       if (data) {
         setClinicName(data.name);
-        if (data.logo_sidebar_url) {
-          setSidebarLogo(data.logo_sidebar_url);
+        if (data.logo_url) {
+          setSidebarLogo(data.logo_url);
         }
       }
     };
