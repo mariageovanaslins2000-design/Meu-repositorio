@@ -578,10 +578,14 @@ export type Database = {
           display_order: number
           features: Json | null
           has_advanced_reports: boolean
+          has_custom_colors: boolean
+          has_date_filter: boolean
+          has_day_blocking: boolean
           has_whatsapp_integration: boolean
           id: string
           is_active: boolean
           max_clients: number | null
+          max_portfolio_images: number | null
           max_professionals: number | null
           name: string
           price_monthly: number
@@ -595,10 +599,14 @@ export type Database = {
           display_order?: number
           features?: Json | null
           has_advanced_reports?: boolean
+          has_custom_colors?: boolean
+          has_date_filter?: boolean
+          has_day_blocking?: boolean
           has_whatsapp_integration?: boolean
           id?: string
           is_active?: boolean
           max_clients?: number | null
+          max_portfolio_images?: number | null
           max_professionals?: number | null
           name: string
           price_monthly: number
@@ -612,10 +620,14 @@ export type Database = {
           display_order?: number
           features?: Json | null
           has_advanced_reports?: boolean
+          has_custom_colors?: boolean
+          has_date_filter?: boolean
+          has_day_blocking?: boolean
           has_whatsapp_integration?: boolean
           id?: string
           is_active?: boolean
           max_clients?: number | null
+          max_portfolio_images?: number | null
           max_professionals?: number | null
           name?: string
           price_monthly?: number
