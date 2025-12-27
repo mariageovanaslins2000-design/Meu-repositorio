@@ -60,9 +60,6 @@ export function ClientMobileMenu() {
             </nav>
 
             <div className="border-t pt-4 space-y-2">
-              <div className="px-4 py-2 text-sm font-medium text-muted-foreground">
-                {user?.email}
-              </div>
               <Link
                 to="/client/profile"
                 onClick={() => setOpen(false)}
