@@ -62,7 +62,7 @@ const Sales = () => {
       if (error) throw error;
       
       if (data?.url) {
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       }
     } catch (error: any) {
       console.error("Checkout error:", error);
