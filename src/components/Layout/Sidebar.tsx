@@ -58,7 +58,7 @@ export const Sidebar = () => {
       {/* Logo */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src={sidebarLogo || logoGreen} alt="iClinic" className="w-10 h-10 rounded-lg object-cover" />
+          <img src={logoGreen} alt="iClinic" className="w-10 h-10 rounded-lg object-cover" />
           <div>
             <h1 className="text-lg font-display font-semibold text-sidebar-foreground">iClinic</h1>
             <p className="text-xs text-sidebar-foreground/60">Gestão Inteligente</p>
