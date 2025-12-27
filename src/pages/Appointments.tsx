@@ -32,6 +32,8 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/Subscription/UpgradePrompt";
 
 type Appointment = {
   id: string;
@@ -69,11 +71,15 @@ const Appointments = () => {
   
   // Block day state
   const [showBlockModal, setShowBlockModal] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [blockBarber, setBlockBarber] = useState<string>("");
   const [blockReason, setBlockReason] = useState("");
   const [blocking, setBlocking] = useState(false);
   const [blockedDays, setBlockedDays] = useState<BlockedDay[]>([]);
   const [barbershopId, setBarbershopId] = useState<string | null>(null);
+
+  const { plan, hasFeature, loading: subscriptionLoading } = useSubscription();
+  const canBlockDays = hasFeature('day_blocking');
 
   const handleDeleteAppointment = async () => {
     if (!appointmentToDelete) return;
@@ -530,7 +536,13 @@ const Appointments = () => {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setShowBlockModal(true)}
+                onClick={() => {
+                  if (!canBlockDays) {
+                    setShowUpgradePrompt(true);
+                  } else {
+                    setShowBlockModal(true);
+                  }
+                }}
                 className="gap-2"
               >
                 <Lock className="w-4 h-4" />
@@ -743,6 +755,13 @@ const Appointments = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UpgradePrompt 
+        open={showUpgradePrompt} 
+        onOpenChange={setShowUpgradePrompt}
+        feature="day_blocking"
+        currentPlan={plan?.name}
+      />
     </div>
   );
 };

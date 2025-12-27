@@ -26,6 +26,8 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PlanLimitIndicator } from "@/components/Subscription/PlanLimitIndicator";
 
 interface Client {
   id: string;
@@ -57,6 +59,8 @@ const Clients = () => {
   const [filterTab, setFilterTab] = useState("todos");
   const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const { getClientsLimit, loading: subscriptionLoading } = useSubscription();
 
   const handleDeleteClient = async () => {
     if (!clientToDelete) return;
@@ -257,7 +261,9 @@ const Clients = () => {
   const activeClients = clients.filter(c => c.total_appointments > 0).length;
   const inactiveClients = clients.length - activeClients;
 
-  if (loading) {
+  const limits = getClientsLimit();
+
+  if (loading || subscriptionLoading) {
     return (
       <div className="space-y-6">
         <div>
@@ -271,9 +277,12 @@ const Clients = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Clientes</h1>
-        <p className="text-muted-foreground">Gerencie sua base de clientes cadastrados</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Clientes</h1>
+          <p className="text-muted-foreground">Gerencie sua base de clientes cadastrados</p>
+        </div>
+        <PlanLimitIndicator current={limits.current} max={limits.max} label="Clientes" />
       </div>
 
       {/* Stats */}
