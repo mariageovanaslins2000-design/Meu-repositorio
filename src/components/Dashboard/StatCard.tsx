@@ -12,14 +12,14 @@ interface StatCardProps {
 
 export const StatCard = ({ title, value, icon, trend }: StatCardProps) => {
   return (
-    <Card className="shadow-elegant border-border/50">
-      <CardContent className="p-6">
+    <Card className="border-border/50">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-3xl font-display font-semibold">{value}</p>
+          <div className="space-y-0.5">
+            <p className="text-xs text-muted-foreground">{title}</p>
+            <p className="text-xl font-semibold">{value}</p>
             {trend && (
-              <p className={`text-sm ${trend.positive ? "text-primary" : "text-destructive"}`}>
+              <p className={`text-xs ${trend.positive ? "text-primary" : "text-destructive"}`}>
                 {trend.positive ? "↑" : "↓"} {trend.value}
               </p>
             )}
