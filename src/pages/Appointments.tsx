@@ -444,21 +444,20 @@ const Appointments = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold font-display">Agenda</h1>
-        <p className="text-muted-foreground">Gerencie todos os agendamentos por profissional</p>
+        <h1 className="text-xl font-medium">Agenda</h1>
+        <p className="text-sm text-muted-foreground">Gerencie todos os agendamentos por profissional</p>
       </div>
 
-
-      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4">
         {/* Calendar */}
-        <Card className="shadow-elegant">
-          <CardHeader>
+        <Card>
+          <CardHeader className="p-4 pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-base font-medium">
+                <CalendarIcon className="w-4 h-4" />
                 Calendário
               </CardTitle>
               <Button
@@ -471,14 +470,14 @@ const Appointments = () => {
                     setShowBlockModal(true);
                   }
                 }}
-                className="gap-2"
+                className="gap-1.5 h-8 text-xs"
               >
-                <Lock className="w-4 h-4" />
-                Bloquear Dia
+                <Lock className="w-3.5 h-3.5" />
+                Bloquear
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="overflow-x-auto space-y-4">
+          <CardContent className="p-4 pt-0 overflow-x-auto space-y-3">
             <Calendar
               mode="single"
               selected={date}
@@ -488,15 +487,15 @@ const Appointments = () => {
             
             {/* Blocked days for selected date */}
             {blockedDays.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-destructive flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
+              <div className="space-y-1.5">
+                <p className="text-xs font-medium text-destructive flex items-center gap-1.5">
+                  <Lock className="w-3 h-3" />
                   Bloqueios neste dia:
                 </p>
                 {blockedDays.map((block) => (
                   <div 
                     key={block.id} 
-                    className="flex items-center justify-between p-2 bg-destructive/10 rounded-md text-sm"
+                    className="flex items-center justify-between p-2 bg-destructive/10 rounded-md text-xs"
                   >
                     <div>
                       <span className="font-medium">{block.barber_name}</span>
@@ -507,10 +506,10 @@ const Appointments = () => {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-7 w-7"
+                      className="h-6 w-6"
                       onClick={() => handleUnblockDay(block.id)}
                     >
-                      <Unlock className="w-4 h-4" />
+                      <Unlock className="w-3 h-3" />
                     </Button>
                   </div>
                 ))}
@@ -520,15 +519,15 @@ const Appointments = () => {
         </Card>
 
         {/* Appointments List */}
-        <Card className="shadow-elegant">
-          <CardHeader>
-            <div className="flex flex-col gap-3">
-              <CardTitle className="flex items-center gap-2 whitespace-nowrap">
-                <Clock className="w-5 h-5" />
+        <Card>
+          <CardHeader className="p-4 pb-3">
+            <div className="flex flex-col gap-2">
+              <CardTitle className="flex items-center gap-2 text-base font-medium whitespace-nowrap">
+                <Clock className="w-4 h-4" />
                 {startDate && endDate ? "Agendamentos do Período" : "Agendamentos do Dia"}
               </CardTitle>
               <Select value={selectedBarber} onValueChange={setSelectedBarber}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[180px] h-8 text-sm">
                   <SelectValue placeholder="Todos os profissionais" />
                 </SelectTrigger>
                 <SelectContent>
@@ -542,28 +541,28 @@ const Appointments = () => {
               </Select>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0">
             {loading ? (
-              <div className="text-center py-8 text-muted-foreground">Carregando...</div>
+              <div className="text-center py-6 text-sm text-muted-foreground">Carregando...</div>
             ) : filteredAppointments.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="text-center py-6 text-sm text-muted-foreground">
                 Nenhum agendamento encontrado para este dia
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
                     className={cn(
-                      "flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-lg transition-colors border border-border",
+                      "flex flex-col lg:flex-row lg:items-center gap-3 p-3 rounded-lg transition-colors border border-border",
                       appointment.status === "confirmed" 
                         ? "bg-secondary/10 hover:bg-secondary/20" 
                         : "bg-muted/50 hover:bg-muted"
                     )}
                   >
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-16 text-center flex-shrink-0">
-                        <p className="text-lg font-bold">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-14 text-center flex-shrink-0">
+                        <p className="text-sm font-semibold">
                           {new Date(appointment.appointment_date).toLocaleTimeString('pt-BR', { 
                             hour: '2-digit', 
                             minute: '2-digit',
@@ -574,17 +573,17 @@ const Appointments = () => {
                           {appointment.service.duration_minutes}min
                         </p>
                       </div>
-                      <div className="h-12 w-px bg-border hidden lg:block" />
+                      <div className="h-10 w-px bg-border hidden lg:block" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{appointment.client.full_name}</p>
-                        <p className="text-sm text-muted-foreground truncate">{appointment.service.name}</p>
-                        <p className="text-sm font-medium text-secondary">R$ {appointment.service.price}</p>
+                        <p className="text-sm font-medium truncate">{appointment.client.full_name}</p>
+                        <p className="text-xs text-muted-foreground truncate">{appointment.service.name}</p>
+                        <p className="text-xs font-medium text-secondary">R$ {appointment.service.price}</p>
                       </div>
                     </div>
                     
-                    <div className="flex items-center justify-between lg:justify-end gap-4 flex-wrap">
+                    <div className="flex items-center justify-between lg:justify-end gap-3 flex-wrap">
                       <div className="text-left lg:text-right">
-                        <p className="text-sm font-medium">{appointment.barber.name}</p>
+                        <p className="text-xs font-medium">{appointment.barber.name}</p>
                         <p className="text-xs text-muted-foreground">Profissional</p>
                       </div>
                       
@@ -595,9 +594,9 @@ const Appointments = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => setAppointmentToDelete(appointment)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         )}
                       </div>

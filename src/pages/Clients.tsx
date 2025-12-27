@@ -275,47 +275,47 @@ const Clients = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Clientes</h1>
-          <p className="text-muted-foreground">Gerencie sua base de clientes cadastrados</p>
+          <h1 className="text-xl font-medium">Clientes</h1>
+          <p className="text-sm text-muted-foreground">Gerencie sua base de clientes cadastrados</p>
         </div>
         <PlanLimitIndicator current={limits.current} max={limits.max} label="Clientes" />
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
-            <Users className="w-4 h-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+            <CardTitle className="text-xs font-medium">Total de Clientes</CardTitle>
+            <Users className="w-3.5 h-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{clients.length}</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-semibold">{clients.length}</div>
             <p className="text-xs text-muted-foreground">Cadastrados no sistema</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
-            <Calendar className="w-4 h-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+            <CardTitle className="text-xs font-medium">Clientes Ativos</CardTitle>
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeClients}</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-semibold">{activeClients}</div>
             <p className="text-xs text-muted-foreground">Com atendimentos realizados</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Inativos</CardTitle>
-            <UserX className="w-4 h-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
+            <CardTitle className="text-xs font-medium">Clientes Inativos</CardTitle>
+            <UserX className="w-3.5 h-3.5 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inactiveClients}</div>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-semibold">{inactiveClients}</div>
             <p className="text-xs text-muted-foreground">Cadastrados sem atendimentos</p>
           </CardContent>
         </Card>
@@ -323,50 +323,50 @@ const Clients = () => {
 
       {/* Clients List */}
       <Card>
-        <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
+        <CardHeader className="p-4 pb-3">
+          <CardTitle className="text-base font-medium">Lista de Clientes</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="p-4 pt-0 space-y-3">
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-3.5 h-3.5" />
             <Input
               placeholder="Buscar por nome ou telefone..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-9 h-9 text-sm"
             />
           </div>
 
           {/* Filter Tabs */}
           <Tabs value={filterTab} onValueChange={setFilterTab}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="todos">
+            <TabsList className="grid w-full grid-cols-3 h-9">
+              <TabsTrigger value="todos" className="text-xs">
                 Todos ({clients.length})
               </TabsTrigger>
-              <TabsTrigger value="ativos">
+              <TabsTrigger value="ativos" className="text-xs">
                 Ativos ({activeClients})
               </TabsTrigger>
-              <TabsTrigger value="inativos">
+              <TabsTrigger value="inativos" className="text-xs">
                 Inativos ({inactiveClients})
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value={filterTab} className="mt-4 space-y-4">
+            <TabsContent value={filterTab} className="mt-3 space-y-2">
               {filteredClients.map((client) => (
               <div
                 key={client.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors gap-4"
+                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/5 transition-colors gap-3"
               >
-                <div className="flex items-start gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
-                    <span className="text-lg font-bold text-icon">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-medium text-icon">
                       {client.full_name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">{client.full_name}</h3>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm text-muted-foreground mt-1">
+                    <h3 className="text-sm font-medium text-foreground truncate">{client.full_name}</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                       <div className="flex items-center gap-1">
                         <Phone className="w-3 h-3" />
                         <span className="truncate">{client.phone}</span>
@@ -377,16 +377,11 @@ const Clients = () => {
                         <span>{client.total_appointments} atendimentos</span>
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
-                      <p>
-                        Cadastrado em: {format(new Date(client.created_at), "dd/MM/yyyy", { locale: ptBR })}
-                      </p>
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       {client.last_appointment_date ? (
-                        <p>
-                          Último atendimento: {format(new Date(client.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
-                        </p>
+                        <span>Último: {format(new Date(client.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}</span>
                       ) : (
-                        <p className="text-yellow-600">Sem atendimentos ainda</p>
+                        <span className="text-yellow-600">Sem atendimentos ainda</span>
                       )}
                     </div>
                   </div>
