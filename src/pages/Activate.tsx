@@ -154,25 +154,43 @@ const Activate = () => {
     );
   }
 
+  // Verifica se é token já usado (conta já ativada)
+  const isTokenUsed = error?.toLowerCase().includes("já foi utilizado") || error?.toLowerCase().includes("already used");
+  
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 rounded-full bg-destructive/10 text-destructive w-fit">
-              <AlertCircle className="h-8 w-8" />
+            <div className={`mx-auto mb-4 p-3 rounded-full w-fit ${isTokenUsed ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>
+              {isTokenUsed ? <CheckCircle className="h-8 w-8" /> : <AlertCircle className="h-8 w-8" />}
             </div>
-            <CardTitle className="text-xl">Link Inválido</CardTitle>
-            <CardDescription>{error}</CardDescription>
+            <CardTitle className="text-xl">
+              {isTokenUsed ? "Conta Já Ativada" : "Link Inválido"}
+            </CardTitle>
+            <CardDescription>
+              {isTokenUsed 
+                ? "Sua conta já está ativa! Você pode fazer login para acessar o sistema."
+                : error
+              }
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground text-center">
-              Se você acredita que isso é um erro, entre em contato conosco ou 
-              solicite um novo link de ativação.
-            </p>
-            <Button className="w-full" onClick={() => navigate("/vendas")}>
-              Ver Planos
-            </Button>
+            {isTokenUsed ? (
+              <Button className="w-full" onClick={() => navigate("/auth")}>
+                Fazer Login
+              </Button>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground text-center">
+                  Se você acredita que isso é um erro, entre em contato conosco ou 
+                  solicite um novo link de ativação.
+                </p>
+                <Button className="w-full" onClick={() => navigate("/vendas")}>
+                  Ver Planos
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

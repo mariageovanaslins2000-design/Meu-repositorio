@@ -116,11 +116,15 @@ export const MobileSidebar = () => {
               {/* User Profile */}
               <div className="p-4 border-t border-sidebar-border space-y-2">
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50">
-                  <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
-                    <span className="text-sm font-semibold text-sidebar-primary-foreground">
-                      {clinicName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  {sidebarLogo ? (
+                    <img src={sidebarLogo} alt={clinicName} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-sidebar-primary flex items-center justify-center">
+                      <span className="text-sm font-semibold text-sidebar-primary-foreground">
+                        {clinicName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex-1">
                     <p className="text-sm font-medium text-sidebar-foreground truncate">
                       {clinicName}
