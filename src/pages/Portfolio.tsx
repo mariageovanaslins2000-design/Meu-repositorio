@@ -13,8 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Upload, X, Image as ImageIcon, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PlanLimitIndicator } from "@/components/Subscription/PlanLimitIndicator";
+import { UpgradePrompt } from "@/components/Subscription/UpgradePrompt";
 
 interface PortfolioImage {
   id: string;
@@ -32,8 +35,18 @@ const Portfolio = () => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const { 
+    plan, 
+    hasPortfolioAccess, 
+    canAddPortfolioImage, 
+    getPortfolioLimit, 
+    refreshUsage,
+    loading: subscriptionLoading 
+  } = useSubscription();
 
   useEffect(() => {
     loadPortfolio();
@@ -72,6 +85,11 @@ const Portfolio = () => {
     const file = event.target.files?.[0];
     if (!file || !barbershopId) return;
 
+    if (!canAddPortfolioImage()) {
+      setShowUpgradePrompt(true);
+      return;
+    }
+
     setUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
@@ -107,6 +125,7 @@ const Portfolio = () => {
       setDescription("");
       setOpen(false);
       loadPortfolio();
+      refreshUsage();
     } catch (error: any) {
       toast({
         title: "Erro ao fazer upload",
@@ -137,6 +156,7 @@ const Portfolio = () => {
       });
 
       loadPortfolio();
+      refreshUsage();
     } catch (error: any) {
       toast({
         title: "Erro ao remover",
@@ -146,7 +166,7 @@ const Portfolio = () => {
     }
   };
 
-  if (loading) {
+  if (loading || subscriptionLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -154,68 +174,111 @@ const Portfolio = () => {
     );
   }
 
-  return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+  // Block access for plans without portfolio
+  if (!hasPortfolioAccess()) {
+    return (
+      <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Portfólio</h1>
           <p className="text-muted-foreground">Mostre seus melhores trabalhos</p>
         </div>
         
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="w-4 h-4 mr-2" />
-              Adicionar Imagem
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Adicionar ao Portfólio</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Título (opcional)</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Ex: Corte Degradê"
-                />
+        <Card className="p-12 text-center">
+          <Lock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">Portfólio não disponível</h3>
+          <p className="text-muted-foreground mb-4">
+            O portfólio está disponível nos planos Profissional e Premium.
+          </p>
+          <Button onClick={() => setShowUpgradePrompt(true)}>
+            Ver Planos
+          </Button>
+        </Card>
+
+        <UpgradePrompt 
+          open={showUpgradePrompt} 
+          onOpenChange={setShowUpgradePrompt}
+          feature="portfolio"
+          currentPlan={plan?.name}
+        />
+      </div>
+    );
+  }
+
+  const limits = getPortfolioLimit();
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Portfólio</h1>
+          <p className="text-muted-foreground">Mostre seus melhores trabalhos</p>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <PlanLimitIndicator current={limits.current} max={limits.max} label="Imagens" />
+          
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button
+                onClick={(e) => {
+                  if (!canAddPortfolioImage()) {
+                    e.preventDefault();
+                    setShowUpgradePrompt(true);
+                  }
+                }}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Adicionar Imagem
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar ao Portfólio</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Título (opcional)</Label>
+                  <Input
+                    id="title"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ex: Corte Degradê"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descrição (opcional)</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Descreva o trabalho..."
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Imagem</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {uploading ? "Enviando..." : "Escolher Imagem"}
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUpload}
+                    className="hidden"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição (opcional)</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Descreva o trabalho..."
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Imagem</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="w-full"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  {uploading ? "Enviando..." : "Escolher Imagem"}
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleUpload}
-                  className="hidden"
-                />
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {images.length === 0 ? (
@@ -263,6 +326,13 @@ const Portfolio = () => {
           ))}
         </div>
       )}
+
+      <UpgradePrompt 
+        open={showUpgradePrompt} 
+        onOpenChange={setShowUpgradePrompt}
+        feature="portfolio_images"
+        currentPlan={plan?.name}
+      />
     </div>
   );
 };

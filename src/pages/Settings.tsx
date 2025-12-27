@@ -1,4 +1,4 @@
-import { Upload, Bell, User, Image, Clock } from "lucide-react";
+import { Upload, Bell, User, Image, Clock, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { ClientLinkGenerator } from "@/components/Clients/ClientLinkGenerator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradePrompt } from "@/components/Subscription/UpgradePrompt";
+import { PlanBadge } from "@/components/Subscription/PlanBadge";
 
 const DAYS_OF_WEEK = [
   { value: 1, label: "Segunda" },
@@ -38,6 +41,8 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingSidebarLogo, setUploadingSidebarLogo] = useState(false);
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState("");
   const logoInputRef = useRef<HTMLInputElement>(null);
   const sidebarLogoInputRef = useRef<HTMLInputElement>(null);
   const [clinic, setClinic] = useState({ 
@@ -54,6 +59,8 @@ const Settings = () => {
     saturday_opening_time: "" as string,
     saturday_closing_time: "" as string
   });
+
+  const { plan, hasFeature, loading: subscriptionLoading } = useSubscription();
   
   useEffect(() => { loadClinic(); }, [user]);
 
@@ -120,6 +127,12 @@ const Settings = () => {
   const handleSidebarLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    if (!hasFeature('custom_colors')) {
+      setUpgradeFeature("custom_colors");
+      setShowUpgradePrompt(true);
+      return;
+    }
     
     setUploadingSidebarLogo(true);
     const url = await uploadLogo(file, 'sidebar');
@@ -154,9 +167,26 @@ const Settings = () => {
     } catch { toast.error("Erro ao salvar"); } finally { setLoading(false); }
   };
 
+  const canEditColors = hasFeature('custom_colors');
+
+  if (subscriptionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
-      <div><h1 className="text-3xl font-bold">Configurações</h1><p className="text-muted-foreground">Personalize seu sistema</p></div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Configurações</h1>
+          <p className="text-muted-foreground">Personalize seu sistema</p>
+        </div>
+        <PlanBadge planName={plan?.name || null} />
+      </div>
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-elegant">
           <CardHeader><CardTitle className="flex items-center gap-2"><User className="w-5 h-5" />Informações da Clínica</CardTitle><CardDescription>Dados principais do seu negócio</CardDescription></CardHeader>
@@ -194,8 +224,13 @@ const Settings = () => {
             </div>
             
             <div className="border-t pt-4 space-y-3">
-              <Label>Logo da Sidebar (Menu Lateral)</Label>
-              <p className="text-xs text-muted-foreground">Usada no fundo verde do menu</p>
+              <div className="flex items-center justify-between">
+                <Label>Logo da Sidebar (Menu Lateral)</Label>
+                {!canEditColors && <Lock className="w-4 h-4 text-muted-foreground" />}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {canEditColors ? "Usada no fundo verde do menu" : "Disponível nos planos Profissional e Premium"}
+              </p>
               <div className="flex items-center gap-4">
                 {clinic.logo_sidebar_url ? (
                   <div className="w-20 h-20 rounded-lg overflow-hidden border bg-sidebar">
@@ -208,7 +243,20 @@ const Settings = () => {
                 )}
                 <div className="flex-1">
                   <input ref={sidebarLogoInputRef} type="file" accept="image/*" onChange={handleSidebarLogoUpload} className="hidden" />
-                  <Button type="button" variant="outline" onClick={() => sidebarLogoInputRef.current?.click()} disabled={uploadingSidebarLogo} className="w-full">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      if (!canEditColors) {
+                        setUpgradeFeature("custom_colors");
+                        setShowUpgradePrompt(true);
+                      } else {
+                        sidebarLogoInputRef.current?.click();
+                      }
+                    }} 
+                    disabled={uploadingSidebarLogo} 
+                    className="w-full"
+                  >
                     <Upload className="w-4 h-4 mr-2" />{uploadingSidebarLogo ? "Enviando..." : "Enviar Logo"}
                   </Button>
                 </div>
@@ -218,7 +266,15 @@ const Settings = () => {
         </Card>
         
         <Card className="shadow-elegant">
-          <CardHeader><CardTitle className="flex items-center gap-2"><Upload className="w-5 h-5" />Cores e Identidade</CardTitle><CardDescription>Personalize a aparência</CardDescription></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2"><Upload className="w-5 h-5" />Cores e Identidade</CardTitle>
+              {!canEditColors && <Lock className="w-4 h-4 text-muted-foreground" />}
+            </div>
+            <CardDescription>
+              {canEditColors ? "Personalize a aparência" : "Disponível nos planos Profissional e Premium"}
+            </CardDescription>
+          </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <Label>Cores do Tema</Label>
@@ -226,18 +282,51 @@ const Settings = () => {
                 <div className="flex-1">
                   <Label className="text-xs">Cor Primária</Label>
                   <div className="flex gap-2 mt-1">
-                    <Input type="color" value={clinic.primary_color} onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" />
-                    <Input value={clinic.primary_color} onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} />
+                    <Input 
+                      type="color" 
+                      value={clinic.primary_color} 
+                      onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} 
+                      className="w-12 h-10 p-1 cursor-pointer" 
+                      disabled={!canEditColors}
+                    />
+                    <Input 
+                      value={clinic.primary_color} 
+                      onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} 
+                      disabled={!canEditColors}
+                    />
                   </div>
                 </div>
                 <div className="flex-1">
                   <Label className="text-xs">Cor Secundária</Label>
                   <div className="flex gap-2 mt-1">
-                    <Input type="color" value={clinic.secondary_color} onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })} className="w-12 h-10 p-1 cursor-pointer" />
-                    <Input value={clinic.secondary_color} onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })} />
+                    <Input 
+                      type="color" 
+                      value={clinic.secondary_color} 
+                      onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })} 
+                      className="w-12 h-10 p-1 cursor-pointer"
+                      disabled={!canEditColors}
+                    />
+                    <Input 
+                      value={clinic.secondary_color} 
+                      onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })}
+                      disabled={!canEditColors}
+                    />
                   </div>
                 </div>
               </div>
+              {!canEditColors && (
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-2"
+                  onClick={() => {
+                    setUpgradeFeature("custom_colors");
+                    setShowUpgradePrompt(true);
+                  }}
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Desbloquear Cores Personalizadas
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -338,6 +427,13 @@ const Settings = () => {
           </CardContent>
         </Card>
       </div>
+
+      <UpgradePrompt 
+        open={showUpgradePrompt} 
+        onOpenChange={setShowUpgradePrompt}
+        feature={upgradeFeature}
+        currentPlan={plan?.name}
+      />
     </div>
   );
 };

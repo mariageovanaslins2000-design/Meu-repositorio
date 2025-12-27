@@ -11,9 +11,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface AddProfessionalDialogProps {
   onProfessionalAdded: () => void;
+  disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
-export function AddProfessionalDialog({ onProfessionalAdded }: AddProfessionalDialogProps) {
+export function AddProfessionalDialog({ onProfessionalAdded, disabled, onDisabledClick }: AddProfessionalDialogProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -68,7 +70,16 @@ export function AddProfessionalDialog({ onProfessionalAdded }: AddProfessionalDi
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><Plus className="w-4 h-4 mr-2" />Adicionar Profissional</Button>
+        <Button 
+          onClick={(e) => {
+            if (disabled) {
+              e.preventDefault();
+              onDisabledClick?.();
+            }
+          }}
+        >
+          <Plus className="w-4 h-4 mr-2" />Adicionar Profissional
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
