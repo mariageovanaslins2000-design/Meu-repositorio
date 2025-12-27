@@ -267,7 +267,7 @@ const Clients = () => {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Clientes</h1>
+          <h1 className="text-3xl font-bold">Pacientes</h1>
           <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
@@ -279,44 +279,44 @@ const Clients = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Clientes</h1>
-          <p className="text-muted-foreground">Gerencie sua base de clientes cadastrados</p>
+          <h1 className="text-3xl font-bold">Pacientes</h1>
+          <p className="text-muted-foreground">Gerencie sua base de pacientes cadastrados</p>
         </div>
-        <PlanLimitIndicator current={limits.current} max={limits.max} label="Clientes" />
+        <PlanLimitIndicator current={limits.current} max={limits.max} label="Pacientes" />
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total de Clientes</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de Pacientes</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{clients.length}</div>
-            <p className="text-xs text-muted-foreground">Cadastrados na barbearia</p>
+            <p className="text-xs text-muted-foreground">Cadastrados na clínica</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Ativos</CardTitle>
+            <CardTitle className="text-sm font-medium">Pacientes Ativos</CardTitle>
             <Calendar className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{activeClients}</div>
-            <p className="text-xs text-muted-foreground">Com agendamentos realizados</p>
+            <p className="text-xs text-muted-foreground">Com consultas realizadas</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Clientes Inativos</CardTitle>
+            <CardTitle className="text-sm font-medium">Pacientes Inativos</CardTitle>
             <UserX className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{inactiveClients}</div>
-            <p className="text-xs text-muted-foreground">Cadastrados sem agendamentos</p>
+            <p className="text-xs text-muted-foreground">Cadastrados sem consultas</p>
           </CardContent>
         </Card>
       </div>
@@ -324,7 +324,7 @@ const Clients = () => {
       {/* Clients List */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
+          <CardTitle>Lista de Pacientes</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Search Bar */}
@@ -374,7 +374,7 @@ const Clients = () => {
                       <span className="hidden sm:inline">•</span>
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
-                        <span>{client.total_appointments} agendamentos</span>
+                        <span>{client.total_appointments} consultas</span>
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
@@ -383,10 +383,10 @@ const Clients = () => {
                       </p>
                       {client.last_appointment_date ? (
                         <p>
-                          Último agendamento: {format(new Date(client.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
+                          Última consulta: {format(new Date(client.last_appointment_date), "dd/MM/yyyy", { locale: ptBR })}
                         </p>
                       ) : (
-                        <p className="text-yellow-600">Sem agendamentos ainda</p>
+                        <p className="text-yellow-600">Sem consultas ainda</p>
                       )}
                     </div>
                   </div>
@@ -433,10 +433,10 @@ const Clients = () => {
                             </div>
                             <div className="space-y-1 text-sm">
                               <p>
-                                <span className="text-muted-foreground">Serviço:</span> {apt.service_name}
+                                <span className="text-muted-foreground">Procedimento:</span> {apt.service_name}
                               </p>
                               <p>
-                                <span className="text-muted-foreground">Barbeiro:</span> {apt.barber_name}
+                                <span className="text-muted-foreground">Especialista:</span> {apt.barber_name}
                               </p>
                               {apt.paid_amount > 0 && (
                                 <p>
@@ -466,7 +466,7 @@ const Clients = () => {
             {filteredClients.length === 0 && clients.length > 0 && (
               <div className="text-center py-12">
                 <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhum cliente encontrado</p>
+                <p className="text-muted-foreground">Nenhum paciente encontrado</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Tente ajustar os filtros ou a busca
                 </p>
@@ -476,9 +476,9 @@ const Clients = () => {
             {clients.length === 0 && (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Nenhum cliente cadastrado ainda</p>
+                <p className="text-muted-foreground">Nenhum paciente cadastrado ainda</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Compartilhe o link de cadastro para seus clientes se cadastrarem
+                  Compartilhe o link de cadastro para seus pacientes se cadastrarem
                 </p>
               </div>
             )}

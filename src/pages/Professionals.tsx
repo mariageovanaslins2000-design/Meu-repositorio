@@ -73,11 +73,11 @@ const Professionals = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Profissionais</h1>
+          <h1 className="text-3xl font-bold">Especialistas</h1>
           <p className="text-muted-foreground">Gerencie sua equipe</p>
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <PlanLimitIndicator current={limits.current} max={limits.max} label="Profissionais" />
+          <PlanLimitIndicator current={limits.current} max={limits.max} label="Especialistas" />
           <AddProfessionalDialog 
             onProfessionalAdded={() => { loadProfessionals(); refreshUsage(); }} 
             disabled={!canAddProfessional()}
@@ -89,9 +89,9 @@ const Professionals = () => {
       {professionals.length === 0 ? (
         <Card className="p-12 text-center">
           <User className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-xl font-semibold mb-2">Nenhum profissional</h3>
-          <p className="text-muted-foreground mb-4">Adicione profissionais para começar</p>
-          <AddProfessionalDialog 
+          <h3 className="text-xl font-semibold mb-2">Nenhum especialista</h3>
+          <p className="text-muted-foreground mb-4">Adicione especialistas para começar</p>
+          <AddProfessionalDialog
             onProfessionalAdded={() => { loadProfessionals(); refreshUsage(); }} 
             disabled={!canAddProfessional()}
             onDisabledClick={() => setShowUpgradePrompt(true)}
@@ -119,7 +119,7 @@ const Professionals = () => {
                         </Button>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-4">{p.specialty || "Profissional"}</p>
+                    <p className="text-sm text-muted-foreground mb-4">{p.specialty || "Especialista"}</p>
                     {p.phone && (
                       <div className="flex items-center justify-center sm:justify-start gap-2 text-sm mb-4">
                         <Phone className="w-4 h-4 text-muted-foreground" />
@@ -148,7 +148,7 @@ const Professionals = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-            <AlertDialogDescription>Excluir "{professionalToDelete?.name}"?</AlertDialogDescription>
+            <AlertDialogDescription>Excluir o especialista "{professionalToDelete?.name}"?</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>

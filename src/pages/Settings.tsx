@@ -359,8 +359,8 @@ const Settings = () => {
         <Card className="shadow-elegant">
           <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Notificações</CardTitle><CardDescription>Configure alertas</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Novos Agendamentos</p><p className="text-sm text-muted-foreground">Receba alertas</p></div><Switch defaultChecked /></div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Lembretes de Cliente</p><p className="text-sm text-muted-foreground">Enviar lembretes automáticos</p></div><Switch defaultChecked /></div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Novas Consultas</p><p className="text-sm text-muted-foreground">Receba alertas</p></div><Switch defaultChecked /></div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Lembretes de Paciente</p><p className="text-sm text-muted-foreground">Enviar lembretes automáticos</p></div><Switch defaultChecked /></div>
           </CardContent>
         </Card>
       </div>

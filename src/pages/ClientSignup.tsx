@@ -210,7 +210,7 @@ export default function ClientSignup() {
               </div>
             )}
           </div>
-          <CardTitle className="text-2xl">Cadastro de Cliente</CardTitle>
+          <CardTitle className="text-2xl">Cadastro de Paciente</CardTitle>
           <CardDescription>
             Você está se cadastrando em: <strong>{barbershopName}</strong>
           </CardDescription>

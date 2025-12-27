@@ -131,9 +131,9 @@ export default function ClientAppointments() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Meus Agendamentos</h1>
+        <h1 className="text-3xl font-bold mb-2">Minhas Consultas</h1>
         <p className="text-muted-foreground">
-          Visualize e gerencie seus agendamentos
+          Visualize e gerencie suas consultas
         </p>
       </div>
 
@@ -141,10 +141,10 @@ export default function ClientAppointments() {
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-muted-foreground mb-4">
-              Você não tem agendamentos ainda
+              Você não tem consultas ainda
             </p>
             <Button asChild>
-              <a href="/client/booking">Fazer Agendamento</a>
+              <a href="/client/booking">Agendar Consulta</a>
             </Button>
           </CardContent>
         </Card>
@@ -227,9 +227,9 @@ export default function ClientAppointments() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancelar Agendamento</AlertDialogTitle>
+            <AlertDialogTitle>Cancelar Consulta</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita.
+              Tem certeza que deseja cancelar esta consulta? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
