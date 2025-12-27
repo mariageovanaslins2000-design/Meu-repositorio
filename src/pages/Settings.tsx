@@ -143,7 +143,7 @@ const Settings = () => {
     } catch { toast.error("Erro ao salvar"); } finally { setLoading(false); }
   };
 
-  const canEditColors = hasFeature('custom_colors');
+  const canEditColors = true; // Cores disponíveis em todos os planos
 
   if (subscriptionLoading) {
     return (
@@ -165,9 +165,9 @@ const Settings = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow-elegant">
-          <CardHeader><CardTitle className="flex items-center gap-2"><User className="w-5 h-5" />Informações da Clínica</CardTitle><CardDescription>Dados principais do seu negócio</CardDescription></CardHeader>
+          <CardHeader><CardTitle className="flex items-center gap-2"><User className="w-5 h-5" />Informações do Negócio</CardTitle><CardDescription>Dados principais do seu estabelecimento</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div><Label>Nome da Clínica</Label><Input value={clinic.name} onChange={(e) => setClinic({ ...clinic, name: e.target.value })} placeholder="Minha Clínica" /></div>
+            <div><Label>Nome do Estabelecimento</Label><Input value={clinic.name} onChange={(e) => setClinic({ ...clinic, name: e.target.value })} placeholder="Meu Negócio" /></div>
             <div><Label>Telefone</Label><Input value={clinic.phone} onChange={(e) => setClinic({ ...clinic, phone: e.target.value })} placeholder="(11) 98765-4321" /></div>
             <div><Label>Endereço</Label><Input value={clinic.address} onChange={(e) => setClinic({ ...clinic, address: e.target.value })} placeholder="Rua Example, 123" /></div>
             <Button className="w-full" onClick={handleSave} disabled={loading}>{loading ? "Salvando..." : "Salvar Alterações"}</Button>
@@ -204,13 +204,8 @@ const Settings = () => {
         
         <Card className="shadow-elegant">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2"><Upload className="w-5 h-5" />Cores e Identidade</CardTitle>
-              {!canEditColors && <Lock className="w-4 h-4 text-muted-foreground" />}
-            </div>
-            <CardDescription>
-              {canEditColors ? "Personalize a aparência" : "Disponível nos planos Profissional e Premium"}
-            </CardDescription>
+            <CardTitle className="flex items-center gap-2"><Upload className="w-5 h-5" />Cores e Identidade</CardTitle>
+            <CardDescription>Personalize a aparência do seu sistema</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
@@ -224,12 +219,10 @@ const Settings = () => {
                       value={clinic.primary_color} 
                       onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} 
                       className="w-12 h-10 p-1 cursor-pointer" 
-                      disabled={!canEditColors}
                     />
                     <Input 
                       value={clinic.primary_color} 
                       onChange={(e) => setClinic({ ...clinic, primary_color: e.target.value })} 
-                      disabled={!canEditColors}
                     />
                   </div>
                 </div>
@@ -241,29 +234,14 @@ const Settings = () => {
                       value={clinic.secondary_color} 
                       onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })} 
                       className="w-12 h-10 p-1 cursor-pointer"
-                      disabled={!canEditColors}
                     />
                     <Input 
                       value={clinic.secondary_color} 
                       onChange={(e) => setClinic({ ...clinic, secondary_color: e.target.value })}
-                      disabled={!canEditColors}
                     />
                   </div>
                 </div>
               </div>
-              {!canEditColors && (
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-2"
-                  onClick={() => {
-                    setUpgradeFeature("custom_colors");
-                    setShowUpgradePrompt(true);
-                  }}
-                >
-                  <Lock className="w-4 h-4 mr-2" />
-                  Desbloquear Cores Personalizadas
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -359,8 +337,8 @@ const Settings = () => {
         <Card className="shadow-elegant">
           <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="w-5 h-5" />Notificações</CardTitle><CardDescription>Configure alertas</CardDescription></CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Novas Consultas</p><p className="text-sm text-muted-foreground">Receba alertas</p></div><Switch defaultChecked /></div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Lembretes de Paciente</p><p className="text-sm text-muted-foreground">Enviar lembretes automáticos</p></div><Switch defaultChecked /></div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Novos Agendamentos</p><p className="text-sm text-muted-foreground">Receba alertas</p></div><Switch defaultChecked /></div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50"><div className="flex-1"><p className="font-medium">Lembretes de Cliente</p><p className="text-sm text-muted-foreground">Enviar lembretes automáticos</p></div><Switch defaultChecked /></div>
           </CardContent>
         </Card>
       </div>

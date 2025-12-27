@@ -25,9 +25,9 @@ import logoGreen from "@/assets/logo-green.png";
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
   { icon: Calendar, label: "Agenda", path: "/admin/appointments" },
-  { icon: Users, label: "Especialistas", path: "/admin/professionals" },
-  { icon: Briefcase, label: "Procedimentos", path: "/admin/services" },
-  { icon: Users, label: "Pacientes", path: "/admin/clients" },
+  { icon: Users, label: "Profissionais", path: "/admin/professionals" },
+  { icon: Briefcase, label: "Serviços", path: "/admin/services" },
+  { icon: Users, label: "Clientes", path: "/admin/clients" },
   { icon: DollarSign, label: "Financeiro", path: "/admin/financial" },
   { icon: Image, label: "Portfólio", path: "/admin/portfolio" },
   { icon: Settings, label: "Configurações", path: "/admin/settings" },
