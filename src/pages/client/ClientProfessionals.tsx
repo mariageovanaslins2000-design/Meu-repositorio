@@ -37,42 +37,41 @@ export default function ClientBarbers() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Nossos Barbeiros</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-medium mb-1">Nossos Profissionais</h1>
+        <p className="text-sm text-muted-foreground">
           Conheça nossa equipe de profissionais
         </p>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {barbers.map((barber) => (
-          <Card key={barber.id} className="group hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden">
-            <CardHeader className="text-center pb-2">
-              <div className="relative w-32 h-32 mx-auto mb-4">
-                <div className="absolute inset-0 bg-secondary rounded-full animate-pulse opacity-20"></div>
-                <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-primary/20 shadow-xl">
+          <Card key={barber.id} className="group hover:shadow-lg transition-all duration-300 overflow-hidden">
+            <CardHeader className="text-center p-4 pb-2">
+              <div className="relative w-16 h-16 mx-auto mb-2">
+                <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-primary/20">
                   {barber.photo_url ? (
                     <img 
                       src={barber.photo_url} 
                       alt={barber.name} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
                     />
                   ) : (
                     <div className="w-full h-full bg-secondary flex items-center justify-center">
-                      <User className="h-16 w-16 text-icon" />
+                      <User className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
                 </div>
               </div>
-              <CardTitle className="text-xl">{barber.name}</CardTitle>
+              <CardTitle className="text-base font-medium">{barber.name}</CardTitle>
               {barber.specialty && (
-                <CardDescription className="text-base">{barber.specialty}</CardDescription>
+                <CardDescription className="text-sm">{barber.specialty}</CardDescription>
               )}
             </CardHeader>
             {barber.phone && (
-              <CardContent className="text-center pt-2">
-                <p className="text-sm text-muted-foreground">{barber.phone}</p>
+              <CardContent className="text-center p-4 pt-0">
+                <p className="text-xs text-muted-foreground">{barber.phone}</p>
               </CardContent>
             )}
           </Card>

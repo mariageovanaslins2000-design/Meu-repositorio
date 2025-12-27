@@ -75,25 +75,25 @@ export default function ClientHome() {
 
   if (!clinicId) {
     return (
-      <div className="max-w-2xl mx-auto space-y-8 text-center">
+      <div className="max-w-md mx-auto space-y-6 text-center">
         <div className="space-y-2">
-          <Store className="h-16 w-16 mx-auto text-primary" />
-          <h1 className="text-3xl font-bold">Bem-vindo!</h1>
-          <p className="text-muted-foreground">
-            Para começar a usar o sistema, você precisa selecionar uma clínica
+          <Store className="h-12 w-12 mx-auto text-primary" />
+          <h1 className="text-xl font-medium">Bem-vindo!</h1>
+          <p className="text-sm text-muted-foreground">
+            Para começar a usar o sistema, você precisa selecionar um estabelecimento
           </p>
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Próximos Passos</CardTitle>
-            <CardDescription>
-              Escolha uma clínica para acessar todos os recursos
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base font-medium">Próximos Passos</CardTitle>
+            <CardDescription className="text-sm">
+              Escolha um estabelecimento para acessar todos os recursos
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate("/client/select-clinic")} className="w-full">
-              Selecionar Clínica
+          <CardContent className="p-4 pt-2">
+            <Button onClick={() => navigate("/client/select-clinic")} size="sm" className="w-full">
+              Selecionar Estabelecimento
             </Button>
           </CardContent>
         </Card>
@@ -102,24 +102,24 @@ export default function ClientHome() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Bem-vindo!</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-medium mb-1">Bem-vindo!</h1>
+        <p className="text-sm text-muted-foreground">
           Gerencie seus agendamentos e explore nossos serviços
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Novo Agendamento</CardTitle>
-            <CardDescription>
+      <div className="grid gap-3 md:grid-cols-2">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base font-medium">Novo Agendamento</CardTitle>
+            <CardDescription className="text-sm">
               Agende um horário com nossos profissionais
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
+          <CardContent className="p-4 pt-2">
+            <Button asChild size="sm" className="w-full">
               <Link to="/client/booking">
                 <Calendar className="mr-2 h-4 w-4" />
                 Agendar Agora
@@ -128,15 +128,15 @@ export default function ClientHome() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Meus Agendamentos</CardTitle>
-            <CardDescription>
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-base font-medium">Meus Agendamentos</CardTitle>
+            <CardDescription className="text-sm">
               Visualize e gerencie seus agendamentos
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button asChild variant="outline" className="w-full">
+          <CardContent className="p-4 pt-2">
+            <Button asChild variant="outline" size="sm" className="w-full">
               <Link to="/client/appointments">
                 Ver Todos
               </Link>
@@ -146,46 +146,46 @@ export default function ClientHome() {
       </div>
 
       <div>
-        <h2 className="text-2xl font-bold mb-4">Próximos Agendamentos</h2>
+        <h2 className="text-lg font-medium mb-3">Próximos Agendamentos</h2>
         {upcomingAppointments.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center">
-              <p className="text-muted-foreground mb-4">
+            <CardContent className="py-6 text-center">
+              <p className="text-sm text-muted-foreground mb-3">
                 Você não tem agendamentos futuros
               </p>
-              <Button asChild>
+              <Button asChild size="sm">
                 <Link to="/client/booking">Fazer Agendamento</Link>
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {upcomingAppointments.map((appointment) => (
               <Card key={appointment.id}>
-                <CardContent className="py-4">
+                <CardContent className="p-4">
                   <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <h3 className="font-semibold">{appointment.services.name}</h3>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-medium">{appointment.services.name}</h3>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         <div className="flex items-center gap-1">
-                          <User className="h-4 w-4" />
+                          <User className="h-3 w-3" />
                           {appointment.barbers.name}
                         </div>
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
+                          <Calendar className="h-3 w-3" />
                           {format(new Date(appointment.appointment_date), "dd 'de' MMMM", { locale: ptBR })}
                         </div>
                         <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
+                          <Clock className="h-3 w-3" />
                           {format(new Date(appointment.appointment_date), "HH:mm")}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg">
+                      <p className="font-semibold text-sm">
                         R$ {Number(appointment.services.price).toFixed(2)}
                       </p>
-                      <p className="text-sm text-muted-foreground capitalize">
+                      <p className="text-xs text-muted-foreground capitalize">
                         {appointment.status === "pending" && "Pendente"}
                         {appointment.status === "confirmed" && "Confirmado"}
                         {appointment.status === "cancelled" && "Cancelado"}

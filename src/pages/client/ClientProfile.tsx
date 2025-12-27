@@ -144,17 +144,17 @@ export default function ClientProfile() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Meu Perfil</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-medium mb-1">Meu Perfil</h1>
+        <p className="text-sm text-muted-foreground">
           Gerencie suas informações pessoais
         </p>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-4">
+        <CardHeader className="p-4">
+          <div className="flex items-center gap-3">
             <div className="relative group">
               <input
                 type="file"
@@ -167,7 +167,7 @@ export default function ClientProfile() {
                 type="button"
                 onClick={handleAvatarClick}
                 disabled={uploadingAvatar}
-                className="relative w-20 h-20 rounded-full overflow-hidden bg-muted flex items-center justify-center cursor-pointer group-hover:opacity-80 transition-opacity"
+                className="relative w-14 h-14 rounded-full overflow-hidden bg-muted flex items-center justify-center cursor-pointer group-hover:opacity-80 transition-opacity"
               >
                 {profile.avatar_url ? (
                   <img
@@ -176,57 +176,59 @@ export default function ClientProfile() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <User className="h-10 w-10 text-muted-foreground" />
+                  <User className="h-7 w-7 text-muted-foreground" />
                 )}
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                   {uploadingAvatar ? (
-                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    <Loader2 className="h-4 w-4 text-white animate-spin" />
                   ) : (
-                    <Camera className="h-6 w-6 text-white" />
+                    <Camera className="h-4 w-4 text-white" />
                   )}
                 </div>
               </button>
               <p className="text-xs text-muted-foreground mt-1 text-center">
-                Clique para alterar
+                Alterar
               </p>
             </div>
             <div>
-              <CardTitle>{profile.full_name || "Usuário"}</CardTitle>
-              <CardDescription>{user?.email}</CardDescription>
+              <CardTitle className="text-base font-medium">{profile.full_name || "Usuário"}</CardTitle>
+              <CardDescription className="text-sm">{user?.email}</CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="full_name">Nome Completo</Label>
+        <CardContent className="p-4 pt-0">
+          <form onSubmit={handleSave} className="space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="full_name" className="text-sm">Nome Completo</Label>
               <Input
                 id="full_name"
                 value={profile.full_name}
                 onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
                 required
+                className="h-9"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">Telefone</Label>
+            <div className="space-y-1">
+              <Label htmlFor="phone" className="text-sm">Telefone</Label>
               <Input
                 id="phone"
                 value={profile.phone}
                 onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
                 placeholder="(11) 99999-9999"
+                className="h-9"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input value={user?.email || ""} disabled />
-              <p className="text-sm text-muted-foreground">
+            <div className="space-y-1">
+              <Label className="text-sm">Email</Label>
+              <Input value={user?.email || ""} disabled className="h-9" />
+              <p className="text-xs text-muted-foreground">
                 O email não pode ser alterado
               </p>
             </div>
 
-            <Button type="submit" disabled={saving} className="w-full">
+            <Button type="submit" disabled={saving} size="sm" className="w-full">
               {saving ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </form>
